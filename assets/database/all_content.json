@@ -9,12 +9,12 @@
       "Family"
     ],
     "year": 2008,
-    "rating": 8.0,
+    "rating": 8,
     "age": "SU",
     "duration": "10m",
     "status": "Complete",
-    "poster": null,
-    "backdrop": null,
+    "poster": "https://upload.wikimedia.org/wikipedia/commons/c/c5/Big_buck_bunny_poster_big.jpg",
+    "backdrop": "https://upload.wikimedia.org/wikipedia/commons/c/c5/Big_buck_bunny_poster_big.jpg",
     "synopsis": "A gentle animated short from the Blender Foundation. Included as a public playback demonstration; attribution is provided in the Credits screen.",
     "license": "Creative Commons Attribution 3.0 (CC BY 3.0)",
     "attribution": "Big Buck Bunny © 2008 Blender Foundation / www.bigbuckbunny.org. Licensed under CC BY 3.0.",
@@ -67,8 +67,8 @@
     "age": "13+",
     "duration": "12m",
     "status": "Complete",
-    "poster": null,
-    "backdrop": null,
+    "poster": "https://commons.wikimedia.org/wiki/Special:Redirect/file/Tos-poster.png",
+    "backdrop": "https://commons.wikimedia.org/wiki/Special:Redirect/file/Tos-poster.png",
     "synopsis": "A science-fiction short film produced by the Blender Institute. Streaming is provided by a public HLS demo origin; use the official Blender site for licensing and credits.",
     "license": "Creative Commons Attribution 3.0 (CC BY 3.0)",
     "attribution": "Tears of Steel © Blender Foundation. Licensed under CC BY 3.0.",
@@ -121,8 +121,8 @@
     "age": "13+",
     "duration": "15m",
     "status": "Complete",
-    "poster": null,
-    "backdrop": null,
+    "poster": "https://upload.wikimedia.org/wikipedia/commons/8/8f/Sintel_poster.jpg",
+    "backdrop": "https://upload.wikimedia.org/wikipedia/commons/8/8f/Sintel_poster.jpg",
     "synopsis": "A fantasy short film from the Blender Durian Open Movie project. The sample stream is a 720p public video endpoint.",
     "license": "Creative Commons Attribution (see official project terms)",
     "attribution": "Sintel © Blender Foundation / Durian Open Movie Project. Attribution required.",
@@ -174,8 +174,8 @@
     "age": "SU",
     "duration": "7m",
     "status": "Complete",
-    "poster": null,
-    "backdrop": null,
+    "poster": "https://upload.wikimedia.org/wikipedia/commons/0/05/Spring2019PillarPosterBlender.jpg",
+    "backdrop": "https://upload.wikimedia.org/wikipedia/commons/0/05/Spring2019PillarPosterBlender.jpg",
     "synopsis": "An animated short about a shepherd girl and her dog, from Blender's open-movie collection.",
     "license": "Check the official Blender Studio license for redistribution terms.",
     "attribution": "Spring © Blender Foundation / Blender Studio. Attribution required where applicable.",
@@ -227,8 +227,8 @@
     "age": "13+",
     "duration": "10m",
     "status": "Complete",
-    "poster": null,
-    "backdrop": null,
+    "poster": "https://commons.wikimedia.org/wiki/Special:Redirect/file/Sprite_Fright-movie_poster.png",
+    "backdrop": "https://commons.wikimedia.org/wiki/Special:Redirect/file/Sprite_Fright-movie_poster.png",
     "synopsis": "A Blender Studio open movie short. The sample endpoint supplied here is a 720p public stream.",
     "license": "Check the official Blender Studio license for redistribution terms.",
     "attribution": "Sprite Fright © Blender Studio. Attribution required where applicable.",
@@ -237,6 +237,58 @@
         "quality_mode": "fixed_source",
         "480p": "",
         "720p": "https://video.blender.org/download/videos/a69d68a5-a0e0-4a80-9d66-49f093c97aaf-720.mp4",
+        "1080p": "",
+        "4K": ""
+      },
+      "server2": {
+        "480p": "",
+        "720p": "",
+        "1080p": "",
+        "4K": ""
+      },
+      "server3": {
+        "480p": "",
+        "720p": "",
+        "1080p": "",
+        "4K": ""
+      },
+      "server4": {
+        "480p": "",
+        "720p": "",
+        "1080p": "",
+        "4K": ""
+      },
+      "server5": {
+        "480p": "",
+        "720p": "",
+        "1080p": "",
+        "4K": ""
+      }
+    }
+  },
+  {
+    "id": "elephants-dream-2006",
+    "title": "Elephants Dream",
+    "type": "movie",
+    "categories": [
+      "Open Movie",
+      "Animation",
+      "Science Fiction"
+    ],
+    "year": 2006,
+    "rating": 7.4,
+    "age": "13+",
+    "duration": "11m",
+    "status": "Complete",
+    "poster": "https://commons.wikimedia.org/wiki/Special:Redirect/file/ElephantsDreamPoster.jpg",
+    "backdrop": "https://commons.wikimedia.org/wiki/Special:Redirect/file/ElephantsDreamPoster.jpg",
+    "synopsis": "The first Blender open movie follows Proog and Emo through a vast, mysterious machine. The film is shared under Creative Commons Attribution 2.5.",
+    "license": "Creative Commons Attribution 2.5 (CC BY 2.5)",
+    "attribution": "© 2006 Blender Foundation / Netherlands Media Art Institute / www.elephantsdream.org. Licensed under CC BY 2.5.",
+    "sources": {
+      "server1": {
+        "480p": "",
+        "720p": "https://storage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
         "1080p": "",
         "4K": ""
       },
