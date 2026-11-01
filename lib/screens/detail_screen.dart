@@ -465,7 +465,7 @@ class _DetailScreenState extends State<DetailScreen> {
   bool _hasUsableSource(String id) {
     final source = widget.content.sources[id];
     if (source == null) return false;
-    return ['480p', '720p', '1080p', '4K'].any((quality) {
+    return ['360p', '480p', '720p', '1080p', '4K'].any((quality) {
       final value = source[quality]?.trim() ?? '';
       final uri = Uri.tryParse(value);
       return uri != null && uri.scheme == 'https' && uri.host.isNotEmpty;
