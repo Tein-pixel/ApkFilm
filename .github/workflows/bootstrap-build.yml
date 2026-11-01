@@ -1,4 +1,4 @@
-name: Bootstrap CINEFLIX Ultra v5 Android build
+name: CineWave Android release build
 
 on:
   push:
@@ -7,6 +7,10 @@ on:
 
 permissions:
   contents: write
+
+concurrency:
+  group: cinewave-android-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   bootstrap-build:
@@ -104,32 +108,19 @@ jobs:
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: cineflix-ultra-v5-apk
+          name: cinewave-v6-apk
           path: build/app/outputs/flutter-apk/app-release.apk
           if-no-files-found: error
           retention-days: 30
-
-      - name: Commit extracted Flutter source back to main
-        if: success()
-        shell: bash
-        run: |
-          # This secondary workflow is bundled in the project archive, but the bootstrap workflow
-          # already owns APK builds. Do not add another workflow that the runner token cannot write.
-          rm -f .github/workflows/build-android.yml
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -A
-          git commit -m "Add CINEFLIX Ultra Premium v5 Flutter project" || exit 0
-          git push
 
       - name: Publish APK as GitHub Release
         if: success()
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: cineflix-v5.0.0-build-${{ github.run_number }}
-          name: CINEFLIX Ultra Premium v5 build ${{ github.run_number }}
+          tag_name: cinewave-v6.0.0-build-${{ github.run_number }}
+          name: CineWave v6.0.0 build ${{ github.run_number }}
           body: |
-            Automated Android release build of CINEFLIX Ultra Premium v5.
-            The bundled catalogue contains open-movie sample titles. Production server slots require authorized media URLs and distribution rights.
+            Automated Android release build of CineWave 6.0.0.
+            The bundled catalogue contains openly licensed Blender Open Movies. Streaming sources are public demo origins; availability may vary by network and origin.
           files: build/app/outputs/flutter-apk/app-release.apk
           make_latest: true
