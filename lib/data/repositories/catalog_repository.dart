@@ -54,6 +54,9 @@ class CatalogRepository {
     return _tmdb.searchMulti(clean, page: page);
   }
 
+  Future<Map<String, dynamic>?> getTitleDetails(MediaContent content) =>
+      _tmdb.getTitleDetails(content);
+
   Future<Map<String, dynamic>?> getWatchProviders(MediaContent content) =>
       _tmdb.getWatchProviders(content);
 

@@ -1,4 +1,4 @@
-# CineWave 7.1.0
+# CineWave 7.2.0
 
 CineWave is an Android-first catalogue and streaming player for openly licensed or otherwise authorized media. Its design takes inspiration from modern streaming interfaces: cinematic featured artwork, portrait posters, compact metadata, saved titles, watch history and a focused player.
 
@@ -90,3 +90,12 @@ The release workflow validates the bundled JSON catalogue and HTTPS URL declarat
 - Multi-search is paginated and the Explore screen offers “Load more results” for subsequent TMDB pages.
 - Search result classification uses TMDB genre IDs, original language and origin-country fields to tag anime and regional drama consistently.
 - The last successful home catalogue is cached locally for 12 hours; manual search remains live. When refresh fails, the app falls back to the cached catalogue and then to bundled open-movie entries.
+
+
+## TMDB detail enrichment (v7.2.0)
+
+- Movie and TV detail requests use `append_to_response` to retrieve cast, YouTube trailers and country-specific certification metadata in one request.
+- TV detail pages show episode runtime, season count and episode count when TMDB has those fields.
+- Movie detail pages show runtime and Indonesian release certification when available.
+- Cast cards use TMDB profile artwork. Trailer actions open the selected YouTube trailer outside CineWave.
+- These additions enrich metadata only. They do not create movie/episode streams or change the authorized-source playback rule.

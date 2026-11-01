@@ -161,6 +161,31 @@ class TmdbService {
     );
   }
 
+
+  /// Fetches full movie/TV metadata, cast, trailers and local age ratings.
+  /// This endpoint never returns an authorized full-length movie stream.
+  Future<Map<String, dynamic>?> getTitleDetails(MediaContent content) async {
+    if (!isConfigured || !content.isTmdb || content.tmdbId == null) {
+      return null;
+    }
+    final append = content.type == 'movie'
+        ? 'credits,videos,release_dates'
+        : 'credits,videos,content_ratings';
+    try {
+      final response = await _dio.get<Map<String, dynamic>>(
+        '/${content.type}/${content.tmdbId}',
+        queryParameters: {
+          ..._authParams,
+          'language': 'id-ID',
+          'append_to_response': append,
+        },
+      );
+      return response.data;
+    } catch (_) {
+      return null;
+    }
+  }
+
   /// Provider information is region-specific and is not a video stream.
   Future<Map<String, dynamic>?> getWatchProviders(MediaContent content) async {
     if (!isConfigured || !content.isTmdb || content.tmdbId == null) return null;

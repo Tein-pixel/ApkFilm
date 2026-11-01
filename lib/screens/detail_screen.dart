@@ -26,13 +26,16 @@ class _DetailScreenState extends State<DetailScreen> {
   String? _serverId;
   bool _starting = false;
   Future<Map<String, dynamic>?>? _providersFuture;
+  Future<Map<String, dynamic>?>? _detailsFuture;
 
   @override
   void initState() {
     super.initState();
     _setSuggestedQuality();
     if (widget.content.isTmdb) {
-      _providersFuture = context.read<CatalogRepository>().getWatchProviders(widget.content);
+      final repository = context.read<CatalogRepository>();
+      _providersFuture = repository.getWatchProviders(widget.content);
+      _detailsFuture = repository.getTitleDetails(widget.content);
     }
     const serverIds = ['server1', 'server2', 'server3', 'server4', 'server5'];
     final readyServers = serverIds.where(_hasUsableSource).toList();
@@ -304,6 +307,8 @@ class _DetailScreenState extends State<DetailScreen> {
                     ),
                   ),
                   SizedBox(height: 18.h),
+                  if (widget.content.isTmdb) _tmdbDetailsSection(),
+                  if (widget.content.isTmdb) SizedBox(height: 18.h),
                   Wrap(
                     spacing: 7.w,
                     runSpacing: 7.h,
@@ -456,6 +461,202 @@ class _DetailScreenState extends State<DetailScreen> {
         ],
       ),
     );
+  }
+
+
+  Widget _tmdbDetailsSection() => FutureBuilder<Map<String, dynamic>?>(
+    future: _detailsFuture,
+    builder: (context, snapshot) {
+      final details = snapshot.data;
+      if (details == null || snapshot.hasError) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Padding(
+            padding: EdgeInsets.symmetric(vertical: 10.h),
+            child: const LinearProgressIndicator(
+              minHeight: 2,
+              color: AppColors.red,
+            ),
+          );
+        }
+        return const SizedBox.shrink();
+      }
+
+      final runtimeValue = widget.content.isMovie
+          ? details['runtime']
+          : (details['episode_run_time'] is List &&
+                  (details['episode_run_time'] as List).isNotEmpty)
+              ? (details['episode_run_time'] as List).first
+              : null;
+      final runtime = runtimeValue is num ? runtimeValue.toInt() : 0;
+      final seasons = (details['number_of_seasons'] as num?)?.toInt() ?? 0;
+      final episodes = (details['number_of_episodes'] as num?)?.toInt() ?? 0;
+      final certification = _tmdbCertification(details);
+
+      final castData = details['credits'] is Map
+          ? (details['credits'] as Map)['cast']
+          : null;
+      final cast = castData is List
+          ? castData.whereType<Map>().take(10).toList(growable: false)
+          : const <Map>[];
+
+      final videosData = details['videos'] is Map
+          ? (details['videos'] as Map)['results']
+          : null;
+      final videos = videosData is List
+          ? videosData.whereType<Map>().toList(growable: false)
+          : const <Map>[];
+      Map? trailer;
+      for (final video in videos) {
+        if (video['site'] == 'YouTube' &&
+            video['type'] == 'Trailer' &&
+            video['key']?.toString().isNotEmpty == true) {
+          trailer = video;
+          if (video['official'] == true) break;
+        }
+      }
+
+      final stats = <String>[];
+      if (runtime > 0) {
+        stats.add(widget.content.isMovie
+            ? '${runtime} min'
+            : '${runtime} min/episode');
+      }
+      if (seasons > 0) stats.add('${seasons} seasons');
+      if (episodes > 0) stats.add('${episodes} episodes');
+      if (certification.isNotEmpty) stats.add(certification);
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (stats.isNotEmpty)
+            Wrap(
+              spacing: 7.w,
+              runSpacing: 7.h,
+              children: stats.map(_tag).toList(growable: false),
+            ),
+          if (trailer != null) ...[
+            SizedBox(height: 12.h),
+            OutlinedButton.icon(
+              onPressed: () => _openYoutubeTrailer(trailer!['key'].toString()),
+              icon: const Icon(Icons.play_circle_outline_rounded),
+              label: const Text('Official trailer'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: Colors.white,
+                side: const BorderSide(color: AppColors.surface3),
+              ),
+            ),
+          ],
+          if (cast.isNotEmpty) ...[
+            SizedBox(height: 18.h),
+            Text(
+              'CAST',
+              style: TextStyle(
+                color: AppColors.secondary,
+                fontSize: 10.sp,
+                fontWeight: FontWeight.w700,
+                letterSpacing: .7,
+              ),
+            ),
+            SizedBox(height: 10.h),
+            SizedBox(
+              height: 146.h,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: cast.length,
+                separatorBuilder: (_, __) => SizedBox(width: 10.w),
+                itemBuilder: (context, index) {
+                  final person = cast[index];
+                  final name = person['name']?.toString() ?? 'Cast member';
+                  final character = person['character']?.toString() ?? '';
+                  final path = person['profile_path']?.toString();
+                  final imageUrl = path == null || path.isEmpty
+                      ? null
+                      : 'https://image.tmdb.org/t/p/w185$path';
+                  return SizedBox(
+                    width: 86.w,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(12.r),
+                          child: Container(
+                            width: 86.w,
+                            height: 94.h,
+                            color: AppColors.surface,
+                            child: imageUrl == null
+                                ? const Icon(
+                                    Icons.person_outline_rounded,
+                                    color: AppColors.secondary,
+                                    size: 32,
+                                  )
+                                : CachedNetworkImage(
+                                    imageUrl: imageUrl,
+                                    fit: BoxFit.cover,
+                                    memCacheHeight: 320,
+                                    errorWidget: (_, __, ___) => const Icon(
+                                      Icons.person_outline_rounded,
+                                      color: AppColors.secondary,
+                                    ),
+                                  ),
+                          ),
+                        ),
+                        SizedBox(height: 5.h),
+                        Text(
+                          name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 9.sp,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        if (character.isNotEmpty)
+                          Text(
+                            character,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: AppColors.secondary,
+                              fontSize: 8.sp,
+                            ),
+                          ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ],
+      );
+    },
+  );
+
+  String _tmdbCertification(Map<String, dynamic> details) {
+    final key = widget.content.isMovie ? 'release_dates' : 'content_ratings';
+    final collection = details[key];
+    if (collection is! Map || collection['results'] is! List) return '';
+    final rows = (collection['results'] as List).whereType<Map>();
+    for (final row in rows) {
+      if (row['iso_3166_1'] != 'ID') continue;
+      if (widget.content.isMovie) {
+        final dates = row['release_dates'];
+        if (dates is! List) continue;
+        for (final date in dates.whereType<Map>()) {
+          final certification = date['certification']?.toString().trim() ?? '';
+          if (certification.isNotEmpty) return certification;
+        }
+      } else {
+        final rating = row['rating']?.toString().trim() ?? '';
+        if (rating.isNotEmpty) return rating;
+      }
+    }
+    return '';
+  }
+
+  Future<void> _openYoutubeTrailer(String key) async {
+    final uri = Uri.https('www.youtube.com', '/watch', {'v': key});
+    await launchUrl(uri, mode: LaunchMode.externalApplication);
   }
 
   Widget _watchProvidersSection() => FutureBuilder<Map<String, dynamic>?>(
