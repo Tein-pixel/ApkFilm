@@ -6,6 +6,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../core/app_theme.dart';
 import '../data/models/media_content.dart';
 import '../data/repositories/catalog_repository.dart';
@@ -25,6 +26,9 @@ class _HomeScreenState extends State<HomeScreen> {
   Timer? _searchDebounce;
   List<MediaContent>? _searchResults;
   bool _searchLoading = false;
+  bool _searchLoadingMore = false;
+  bool _searchHasMore = true;
+  int _searchPage = 1;
   String _selectedExploreFilter = 'All';
   Timer? _autoSlide;
   late Future<List<MediaContent>> _catalogFuture;
@@ -234,7 +238,8 @@ class _HomeScreenState extends State<HomeScreen> {
     final displayed = isExplore ? _filteredExploreItems(items) : items;
     const filters = [
       'All', 'Movies', 'Series', 'Drama', 'Anime',
-      'K-Drama', 'C-Drama', 'Thai Drama',
+      'K-Drama', 'C-Drama', 'Thai Drama', 'Taiwanese Drama',
+      'Indonesian Drama', 'Filipino Drama', 'Indian Drama', 'Japanese Drama',
     ];
     return CustomScrollView(
       slivers: [
@@ -334,6 +339,25 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ),
+        if (isExplore && _searchController.text.trim().isNotEmpty && _searchHasMore)
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(18.w, 4.h, 18.w, 22.h),
+              child: Center(
+                child: OutlinedButton.icon(
+                  onPressed: _searchLoadingMore ? null : _loadMoreSearchResults,
+                  icon: _searchLoadingMore
+                      ? SizedBox(
+                          width: 14.w,
+                          height: 14.w,
+                          child: const CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.expand_more_rounded),
+                  label: Text(_searchLoadingMore ? 'Loading...' : 'Load more results'),
+                ),
+              ),
+            ),
+          ),
       ],
     );
   }
@@ -355,6 +379,11 @@ class _HomeScreenState extends State<HomeScreen> {
       case 'K-Drama':
       case 'C-Drama':
       case 'Thai Drama':
+      case 'Taiwanese Drama':
+      case 'Indonesian Drama':
+      case 'Filipino Drama':
+      case 'Indian Drama':
+      case 'Japanese Drama':
         return source.where((item) => item.categories.contains(_selectedExploreFilter)).toList();
       default:
         return source;
@@ -367,35 +396,67 @@ class _HomeScreenState extends State<HomeScreen> {
     if (query.isEmpty) {
       setState(() {
         _searchResults = null;
+        _searchPage = 1;
+        _searchHasMore = true;
         _searchLoading = false;
+        _searchLoadingMore = false;
       });
       return;
     }
     setState(() {
       _searchResults = null;
+      _searchPage = 1;
+      _searchHasMore = true;
       _searchLoading = true;
     });
     _searchDebounce = Timer(
       const Duration(milliseconds: 450),
-      () => _performExploreSearch(query),
+      () => _performExploreSearch(query, page: 1),
     );
   }
 
-  Future<void> _performExploreSearch(String query) async {
+  Future<void> _performExploreSearch(String query, {required int page}) async {
     try {
-      final results = await context.read<CatalogRepository>().searchCatalog(query);
+      final results = await context.read<CatalogRepository>().searchCatalog(
+        query,
+        page: page,
+      );
       if (!mounted || _searchController.text.trim() != query) return;
       setState(() {
-        _searchResults = results;
+        if (page == 1) {
+          _searchResults = results;
+        } else {
+          final merged = <String, MediaContent>{
+            for (final item in (_searchResults ?? const <MediaContent>[]))
+              item.id: item,
+          };
+          for (final item in results) {
+            merged[item.id] = item;
+          }
+          _searchResults = merged.values.toList(growable: false);
+        }
+        _searchPage = page;
+        _searchHasMore = results.isNotEmpty && page < 500;
         _searchLoading = false;
+        _searchLoadingMore = false;
       });
     } catch (_) {
       if (!mounted || _searchController.text.trim() != query) return;
       setState(() {
-        _searchResults = const [];
+        if (page == 1) _searchResults = const [];
+        _searchHasMore = false;
         _searchLoading = false;
+        _searchLoadingMore = false;
       });
     }
+  }
+
+  Future<void> _loadMoreSearchResults() async {
+    if (_searchLoadingMore || !_searchHasMore) return;
+    final query = _searchController.text.trim();
+    if (query.isEmpty) return;
+    setState(() => _searchLoadingMore = true);
+    await _performExploreSearch(query, page: _searchPage + 1);
   }
 
   Widget _profileTab() => ListView(
@@ -437,10 +498,52 @@ class _HomeScreenState extends State<HomeScreen> {
           'Big Buck Bunny, Tears of Steel, Sintel, Spring and Sprite Fright are Blender open-movie projects. Check each source licence before redistribution.',
         ),
       ),
+      Container(
+        padding: EdgeInsets.all(14.w),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(14.r),
+          border: Border.all(color: AppColors.surface3),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Align(
+              alignment: Alignment.centerLeft,
+              child: SvgPicture.network(
+                'https://www.themoviedb.org/assets/2/v4/logos/v2/blue_square_2-d537fb228cf3ded904ef09b136fe3fec72548ebc1fea3fbbd1ad9e36364db38b.svg',
+                width: 42.w,
+                height: 42.w,
+                placeholderBuilder: (_) => SizedBox(
+                  width: 42.w,
+                  height: 42.w,
+                  child: const Center(child: Icon(Icons.movie_outlined)),
+                ),
+              ),
+            ),
+            SizedBox(height: 10.h),
+            const Text(
+              'This product uses the TMDB API but is not endorsed or certified by TMDB.',
+              style: TextStyle(color: AppColors.secondary, fontSize: 11, height: 1.45),
+            ),
+            SizedBox(height: 5.h),
+            TextButton(
+              onPressed: () => launchUrl(
+                Uri.parse('https://www.themoviedb.org'),
+                mode: LaunchMode.externalApplication,
+              ),
+              child: const Text('The Movie Database'),
+            ),
+          ],
+        ),
+      ),
+      const SizedBox(height: 10),
       const ListTile(
-        leading: Icon(Icons.movie_filter_outlined),
-        title: Text('TMDB attribution'),
-        subtitle: Text('This product uses the TMDB API but is not endorsed or certified by TMDB.'),
+        leading: Icon(Icons.link_rounded),
+        title: Text('JustWatch attribution'),
+        subtitle: Text(
+          'Streaming availability data is provided by JustWatch through TMDB.',
+        ),
       ),
       const ListTile(
         leading: Icon(Icons.security_outlined),

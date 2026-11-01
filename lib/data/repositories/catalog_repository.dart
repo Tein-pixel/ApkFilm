@@ -23,7 +23,7 @@ class CatalogRepository {
     return _merge(cached.isNotEmpty ? cached : local, local);
   }
 
-  Future<List<MediaContent>> searchCatalog(String query) async {
+  Future<List<MediaContent>> searchCatalog(String query, {int page = 1}) async {
     final clean = query.trim();
     if (clean.isEmpty) return loadCatalog();
     if (!_tmdb.isConfigured) {
@@ -31,7 +31,7 @@ class CatalogRepository {
       final q = clean.toLowerCase();
       return local.where((item) => item.title.toLowerCase().contains(q)).toList();
     }
-    return _tmdb.searchMulti(clean);
+    return _tmdb.searchMulti(clean, page: page);
   }
 
   Future<Map<String, dynamic>?> getWatchProviders(MediaContent content) =>

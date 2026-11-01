@@ -75,3 +75,10 @@ TMDB supplies metadata and artwork, not movie files. A title appears in the cata
 ## Build validation
 
 The release workflow validates the bundled JSON catalogue and HTTPS URL declarations locally. It does not make every remote poster or video host a mandatory build dependency; transient CDN throttling (for example HTTP 429) must not block APK compilation. The app still performs runtime playback-origin checks.
+
+
+### Attribution review
+
+- TMDB's current developer FAQ requires its approved logo, the exact non-endorsement notice, and placement in an About/Credits section. CineWave now shows the TMDB logo and notice in Profile/About.
+- The TMDB watch-provider endpoint is powered by JustWatch and explicitly requires JustWatch attribution. CineWave displays “Availability data provided by JustWatch” beside the Indonesia provider panel and links to JustWatch Indonesia.
+- TMDB search/discover results are metadata. They do not grant video playback rights and do not expose a stream URL.

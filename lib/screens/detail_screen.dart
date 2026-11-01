@@ -523,6 +523,23 @@ class _DetailScreenState extends State<DetailScreen> {
         children: [
           Text(
             'WHERE TO WATCH • INDONESIA',
+          SizedBox(height: 5.h),
+          Row(
+            children: [
+              const Icon(Icons.info_outline_rounded, size: 12, color: AppColors.secondary),
+              SizedBox(width: 5.w),
+              Expanded(
+                child: Text(
+                  'Availability data provided by JustWatch.',
+                  style: TextStyle(color: AppColors.secondary, fontSize: 9.sp),
+                ),
+              ),
+              TextButton(
+                onPressed: () => _openProvider('https://www.justwatch.com/id'),
+                child: const Text('JustWatch'),
+              ),
+            ],
+          ),
             style: TextStyle(
               fontSize: 11.sp,
               fontWeight: FontWeight.w700,

@@ -93,6 +93,36 @@ class TmdbService {
       _fetchList(
         '/discover/tv',
         mediaType: 'tv',
+        category: 'Taiwanese Drama',
+        extra: {'with_origin_country': 'TW', 'with_genres': 18, 'sort_by': 'popularity.desc'},
+      ),
+      _fetchList(
+        '/discover/tv',
+        mediaType: 'tv',
+        category: 'Indonesian Drama',
+        extra: {'with_origin_country': 'ID', 'with_genres': 18, 'sort_by': 'popularity.desc'},
+      ),
+      _fetchList(
+        '/discover/tv',
+        mediaType: 'tv',
+        category: 'Filipino Drama',
+        extra: {'with_origin_country': 'PH', 'with_genres': 18, 'sort_by': 'popularity.desc'},
+      ),
+      _fetchList(
+        '/discover/tv',
+        mediaType: 'tv',
+        category: 'Indian Drama',
+        extra: {'with_origin_country': 'IN', 'with_genres': 18, 'sort_by': 'popularity.desc'},
+      ),
+      _fetchList(
+        '/discover/tv',
+        mediaType: 'tv',
+        category: 'Japanese Drama',
+        extra: {'with_origin_country': 'JP', 'with_genres': 18, 'sort_by': 'popularity.desc'},
+      ),
+      _fetchList(
+        '/discover/tv',
+        mediaType: 'tv',
         category: 'Anime',
         extra: {
           'with_origin_country': 'JP',
@@ -122,12 +152,12 @@ class TmdbService {
     return merged.values.take(180).toList(growable: false);
   }
 
-  Future<List<MediaContent>> searchMulti(String query) async {
+  Future<List<MediaContent>> searchMulti(String query, {int page = 1}) async {
     final clean = query.trim();
     if (!isConfigured || clean.isEmpty) return const [];
     return _fetchList(
       '/search/multi',
-      extra: {'query': clean, 'include_adult': false},
+      extra: {'query': clean, 'include_adult': false, 'page': page.clamp(1, 500)},
     );
   }
 

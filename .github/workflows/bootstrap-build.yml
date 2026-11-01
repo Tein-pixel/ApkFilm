@@ -2,7 +2,7 @@ name: CineWave Android v7 release build
 
 on:
   push:
-    branches: [main]
+    branches: [main, tmdb-attribution-audit]
   workflow_dispatch:
 
 permissions:
@@ -135,7 +135,7 @@ jobs:
           retention-days: 30
 
       - name: Publish APK as GitHub Release
-        if: success()
+        if: success() && github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: cinewave-v7.1.0-build-${{ github.run_number }}
