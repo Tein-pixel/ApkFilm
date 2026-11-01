@@ -1,4 +1,4 @@
-# CineWave 7.2.0
+# CineWave 7.3.0
 
 CineWave is an Android-first catalogue and streaming player for openly licensed or otherwise authorized media. Its design takes inspiration from modern streaming interfaces: cinematic featured artwork, portrait posters, compact metadata, saved titles, watch history and a focused player.
 
@@ -99,3 +99,13 @@ The release workflow validates the bundled JSON catalogue and HTTPS URL declarat
 - Movie detail pages show runtime and Indonesian release certification when available.
 - Cast cards use TMDB profile artwork. Trailer actions open the selected YouTube trailer outside CineWave.
 - These additions enrich metadata only. They do not create movie/episode streams or change the authorized-source playback rule.
+
+
+## CineWave 7.3.0 — CineFlow-inspired discovery and series experience
+
+- Home now includes regional drama and anime shelves plus an official Indonesian streaming-provider rail.
+- Provider filtering uses TMDB's Indonesia watch-region discovery data. Provider availability is not treated as an in-app video stream.
+- TV detail pages can load season and episode metadata from TMDB, including episode stills and runtimes.
+- Player supports audio-track selection where ExoPlayer exposes the tracks, and optional external WebVTT subtitles configured on a title.
+- Subtitle URLs must be HTTPS and contain valid WebVTT. Subtitle tracks are not invented or scraped.
+- TMDB metadata remains separate from authorized playback sources. A movie or episode only plays in CineWave when a real, authorized source is configured for it.
