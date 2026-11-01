@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -128,6 +129,21 @@ class _DetailScreenState extends State<DetailScreen> {
                       ),
                     ),
                   ),
+                  if ((widget.content.backdrop ?? widget.content.poster)
+                          ?.trim()
+                          .isNotEmpty ==
+                      true)
+                    Positioned.fill(
+                      child: CachedNetworkImage(
+                        imageUrl: (widget.content.backdrop ??
+                                widget.content.poster!)
+                            .trim(),
+                        fit: BoxFit.cover,
+                        memCacheHeight: 900,
+                        errorWidget: (_, __, ___) =>
+                            const SizedBox.expand(),
+                      ),
+                    ),
                   Positioned.fill(
                     child: BackdropFilter(
                       filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
@@ -171,11 +187,24 @@ class _DetailScreenState extends State<DetailScreen> {
                                 ),
                               ],
                             ),
-                            child: const Icon(
-                              Icons.movie_creation_outlined,
-                              size: 42,
-                              color: Colors.white70,
-                            ),
+                            clipBehavior: Clip.antiAlias,
+                            child: widget.content.poster?.trim().isNotEmpty ==
+                                    true
+                                ? CachedNetworkImage(
+                                    imageUrl: widget.content.poster!.trim(),
+                                    fit: BoxFit.cover,
+                                    memCacheHeight: 900,
+                                    errorWidget: (_, __, ___) => const Icon(
+                                      Icons.movie_creation_outlined,
+                                      size: 42,
+                                      color: Colors.white70,
+                                    ),
+                                  )
+                                : const Icon(
+                                    Icons.movie_creation_outlined,
+                                    size: 42,
+                                    color: Colors.white70,
+                                  ),
                           ),
                         ),
                         SizedBox(width: 15.w),
@@ -300,7 +329,7 @@ class _DetailScreenState extends State<DetailScreen> {
                   SizedBox(height: 10.h),
                   Wrap(
                     spacing: 8.w,
-                    children: ['480p', '720p', '1080p', '4K']
+                    children: _availableQualities
                         .map(
                           (q) => ChoiceChip(
                             label: Text(q),
@@ -401,6 +430,15 @@ class _DetailScreenState extends State<DetailScreen> {
         ],
       ),
     );
+  }
+
+  List<String> get _availableQualities {
+    const order = ['480p', '720p', '1080p', '4K'];
+    return order
+        .where((quality) => widget.content.sources.values.any(
+              (source) => (source[quality]?.trim().isNotEmpty ?? false),
+            ))
+        .toList(growable: false);
   }
 
   int get _configuredSourceCount => [
