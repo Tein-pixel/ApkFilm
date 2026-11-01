@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/services.dart';
@@ -30,6 +31,9 @@ class _PlayerScreenState extends State<PlayerScreen> {
   VideoPlayerController? _controller;
   List<PlaybackSource> _candidates = const [];
   List<VideoTrack> _tracks = const [];
+  List<VideoAudioTrack> _audioTracks = const [];
+  String? _selectedAudioTrackId;
+  String? _selectedSubtitle;
   int _candidateIndex = 0;
   String _quality = 'Auto';
   String _serverLabel = 'Connecting...';
@@ -134,12 +138,23 @@ class _PlayerScreenState extends State<PlayerScreen> {
       final tracks = next.isVideoTrackSupportAvailable()
           ? await next.getVideoTracks()
           : <VideoTrack>[];
+      final audioTracks = next.isAudioTrackSupportAvailable()
+          ? await next.getAudioTracks()
+          : <VideoAudioTrack>[];
       final selectedTrack = await _applyPreferredTrack(next, tracks);
+      if (_selectedSubtitle != null) {
+        await _applySubtitle(next, _selectedSubtitle!);
+      }
       final previous = _controller;
       _controller = next;
       _candidateIndex = index;
       _tracks = List<VideoTrack>.from(tracks)
         ..sort((a, b) => (b.height ?? 0).compareTo(a.height ?? 0));
+      _audioTracks = List<VideoAudioTrack>.from(audioTracks);
+      _selectedAudioTrackId = _audioTracks
+          .where((track) => track.isSelected)
+          .map((track) => track.id)
+          .firstOrNull;
       _serverLabel = candidate.serverName;
       _quality = selectedTrack != null
           ? _qualityLabel(selectedTrack.height ?? 0)
@@ -292,6 +307,62 @@ class _PlayerScreenState extends State<PlayerScreen> {
     }
   }
 
+  Future<void> _selectAudioTrack(VideoAudioTrack track) async {
+    final controller = _controller;
+    if (controller == null || !controller.isAudioTrackSupportAvailable()) {
+      _message('Pemilihan audio tidak didukung oleh stream ini.');
+      return;
+    }
+    try {
+      await controller.selectAudioTrack(track.id);
+      if (mounted) setState(() => _selectedAudioTrackId = track.id);
+    } catch (_) {
+      _message('Track audio tersebut tidak dapat dipilih.');
+    }
+  }
+
+  Future<void> _applySubtitle(
+    VideoPlayerController controller,
+    String label,
+  ) async {
+    final rawUrl = widget.content.subtitles[label]?.trim() ?? '';
+    final uri = Uri.tryParse(rawUrl);
+    if (uri == null || uri.scheme != 'https' || uri.host.isEmpty) {
+      throw const FormatException('Subtitle URL must be HTTPS.');
+    }
+    final dio = Dio();
+    try {
+      final response = await dio.get<String>(
+        uri.toString(),
+        options: Options(responseType: ResponseType.plain),
+      );
+      final content = response.data ?? '';
+      if (!content.trimLeft().startsWith('WEBVTT')) {
+        throw const FormatException('Subtitle must use WebVTT format.');
+      }
+      await controller.setClosedCaptionFile(
+        Future<ClosedCaptionFile>.value(WebVTTCaptionFile(content)),
+      );
+    } finally {
+      dio.close(force: true);
+    }
+  }
+
+  Future<void> _selectSubtitle(String? label) async {
+    final controller = _controller;
+    if (controller == null) return;
+    try {
+      if (label == null) {
+        await controller.setClosedCaptionFile(null);
+      } else {
+        await _applySubtitle(controller, label);
+      }
+      if (mounted) setState(() => _selectedSubtitle = label);
+    } catch (_) {
+      _message('Subtitle tidak dapat dimuat. Gunakan URL HTTPS berformat WebVTT.');
+    }
+  }
+
   String _qualityLabel(int height) {
     if (height >= 2160) return '4K';
     if (height >= 1080) return '1080p';
@@ -392,6 +463,37 @@ class _PlayerScreenState extends State<PlayerScreen> {
                       )
                     : const CircularProgressIndicator(color: AppColors.red),
               ),
+              if (controller != null &&
+                  controller.value.isInitialized &&
+                  controller.value.caption.text.trim().isNotEmpty)
+                Positioned(
+                  left: 22.w,
+                  right: 22.w,
+                  bottom: 112.h,
+                  child: Center(
+                    child: Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 12.w,
+                        vertical: 7.h,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: .78),
+                        borderRadius: BorderRadius.circular(7.r),
+                      ),
+                      child: ClosedCaption(
+                        text: controller.value.caption.text,
+                        textStyle: TextStyle(
+                          color: Colors.white,
+                          fontSize: 12.sp,
+                          fontWeight: FontWeight.w600,
+                          shadows: const [
+                            Shadow(color: Colors.black, blurRadius: 4),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
               if (_loading)
                 const Center(
                   child: CircularProgressIndicator(color: AppColors.red),
@@ -575,6 +677,28 @@ class _PlayerScreenState extends State<PlayerScreen> {
                       selected: _quality == _qualityLabel(track.height ?? 0),
                       enabled: true,
                       onTap: () => _selectTrack(track),
+                    ),
+                  if (widget.content.subtitles.isNotEmpty) ...[
+                    _qualityChip(
+                      'CC Off',
+                      selected: _selectedSubtitle == null,
+                      enabled: true,
+                      onTap: () => _selectSubtitle(null),
+                    ),
+                    for (final entry in widget.content.subtitles.entries)
+                      _qualityChip(
+                        'CC ${entry.key}',
+                        selected: _selectedSubtitle == entry.key,
+                        enabled: true,
+                        onTap: () => _selectSubtitle(entry.key),
+                      ),
+                  ],
+                  for (final track in _audioTracks)
+                    _qualityChip(
+                      'Audio ${track.label ?? track.language ?? track.id}',
+                      selected: _selectedAudioTrackId == track.id,
+                      enabled: true,
+                      onTap: () => _selectAudioTrack(track),
                     ),
                 ],
               ),
