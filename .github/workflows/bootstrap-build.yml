@@ -1,4 +1,4 @@
-name: CineWave Android v7 release build
+name: CineWave Android v7.3 release build
 
 on:
   push:
@@ -138,10 +138,10 @@ jobs:
         if: success() && github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: cinewave-v7.2.0-build-${{ github.run_number }}
-          name: CineWave v7.2.0 build ${{ github.run_number }}
+          tag_name: cinewave-v7.3.0-build-${{ github.run_number }}
+          name: CineWave v7.3.0 build ${{ github.run_number }}
           body: |
-            Automated Android release build of CineWave 7.2.0.
+            Automated Android release build of CineWave 7.3.0.
             Live catalogue metadata is powered by TMDB. TMDB does not provide video streams; in-app playback is limited to separately configured authorized sources. Provider availability links are region dependent.
           files: build/app/outputs/flutter-apk/app-release.apk
           make_latest: true
