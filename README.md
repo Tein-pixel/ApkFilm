@@ -1,4 +1,4 @@
-# CineWave 7.0.0
+# CineWave 7.1.0
 
 CineWave is an Android-first catalogue and streaming player for openly licensed or otherwise authorized media. Its design takes inspiration from modern streaming interfaces: cinematic featured artwork, portrait posters, compact metadata, saved titles, watch history and a focused player.
 
@@ -56,3 +56,22 @@ The v7 release workflow validates catalog poster responses and playback file sig
 
 ### Low-bandwidth playback
 360p is an explicit lowest rendition for Commons transcodes. It is not advertised as 480p. The player prefers available tracks and falls back through the renditions actually configured for each title.
+
+
+## Live catalogue (v7.1.0)
+
+- TMDB powers live metadata for movies and TV series.
+- Explore supports multi-search and filters for movies, series, drama, anime, Korean drama, Chinese drama and Thai drama.
+- Home discovery combines trending titles, popular movies/series and regional discovery feeds. The app caches the last successful metadata catalogue and retains the bundled open-movie collection as an offline fallback.
+- TMDB watch-provider data is queried for Indonesia (ID). It links to official service availability pages when regional data exists; it does not return a playable video stream.
+- The app displays the attribution notice: “This product uses the TMDB API but is not endorsed or certified by TMDB.”
+
+### TMDB build configuration
+
+Create a GitHub Actions repository secret named exactly `TMDB_API_KEY2`. The workflow passes it to Flutter as the `TMDB_API_KEY2` compile-time define. Do not commit the key to source files. A key compiled into a public APK can still be extracted from the APK; for a public commercial deployment, move TMDB requests behind a server-side proxy and confirm the appropriate TMDB licensing terms.
+
+TMDB supplies metadata and artwork, not movie files. A title appears in the catalogue even when CineWave has no authorized playback URL for it. In that case the detail page shows official provider availability when TMDB has regional data and does not pretend that an in-app stream exists. The player remains limited to separately configured authorized video sources.
+
+## Build validation
+
+The release workflow validates the bundled JSON catalogue and HTTPS URL declarations locally. It does not make every remote poster or video host a mandatory build dependency; transient CDN throttling (for example HTTP 429) must not block APK compilation. The app still performs runtime playback-origin checks.

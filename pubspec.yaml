@@ -1,5 +1,5 @@
 name: cineflix_ultra
-version: 7.0.0+7
+version: 7.1.0+8
 description: CineWave - licensed open-movie catalogue and adaptive streaming player.
 publish_to: none
 
@@ -25,6 +25,7 @@ dependencies:
   shared_preferences: ^2.5.3
   smooth_page_indicator: ^1.2.1
   flutter_svg: ^2.2.1
+  url_launcher: ^6.3.2
 
 dev_dependencies:
   flutter_test:

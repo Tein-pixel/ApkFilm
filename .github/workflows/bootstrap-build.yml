@@ -90,7 +90,7 @@ jobs:
       - name: Resolve Flutter dependencies
         run: flutter pub get
 
-      - name: Validate catalog images and playback endpoints
+      - name: Validate bundled catalogue and declared playback URLs
         run: python3 scripts/verify_media_endpoints.py
 
       - name: Set Android application label
@@ -116,7 +116,15 @@ jobs:
         run: flutter test --reporter expanded
 
       - name: Build universal release APK
-        run: flutter build apk --release
+        env:
+          TMDB_API_KEY2: ${{ secrets.TMDB_API_KEY2 }}
+        shell: bash
+        run: |
+          if [[ -z "${TMDB_API_KEY2}" ]]; then
+            echo 'TMDB_API_KEY2 GitHub Actions secret is missing.' >&2
+            exit 1
+          fi
+          flutter build apk --release --dart-define=TMDB_API_KEY2="${TMDB_API_KEY2}"
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
@@ -130,10 +138,10 @@ jobs:
         if: success()
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: cinewave-v7.0.0-build-${{ github.run_number }}
-          name: CineWave v7.0.0 build ${{ github.run_number }}
+          tag_name: cinewave-v7.1.0-build-${{ github.run_number }}
+          name: CineWave v7.1.0 build ${{ github.run_number }}
           body: |
-            Automated Android release build of CineWave 7.0.0.
-            The bundled catalogue contains openly licensed Blender Open Movies. Streaming sources are public demo origins; availability may vary by network and origin.
+            Automated Android release build of CineWave 7.1.0.
+            Live catalogue metadata is powered by TMDB. TMDB does not provide video streams; in-app playback is limited to separately configured authorized sources. Provider availability links are region dependent.
           files: build/app/outputs/flutter-apk/app-release.apk
           make_latest: true

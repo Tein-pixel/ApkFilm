@@ -5,9 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../core/app_theme.dart';
 import '../core/server_manager.dart';
 import '../data/models/media_content.dart';
+import '../data/repositories/catalog_repository.dart';
 import '../features/library/library_cubit.dart';
 import 'player_screen.dart';
 
@@ -23,11 +25,15 @@ class _DetailScreenState extends State<DetailScreen> {
   String _quality = '1080p';
   String? _serverId;
   bool _starting = false;
+  Future<Map<String, dynamic>?>? _providersFuture;
 
   @override
   void initState() {
     super.initState();
     _setSuggestedQuality();
+    if (widget.content.isTmdb) {
+      _providersFuture = context.read<CatalogRepository>().getWatchProviders(widget.content);
+    }
     const serverIds = ['server1', 'server2', 'server3', 'server4', 'server5'];
     final readyServers = serverIds.where(_hasUsableSource).toList();
     _serverId = readyServers.isEmpty ? null : readyServers.first;
@@ -263,8 +269,8 @@ class _DetailScreenState extends State<DetailScreen> {
                                     size: 15,
                                   ),
                                   SizedBox(width: 3.w),
-                                  const Text(
-                                    'OPEN CONTENT',
+                                  Text(
+                                    widget.content.isTmdb ? 'TMDB CATALOG' : 'OPEN CONTENT',
                                     style: TextStyle(
                                       color: AppColors.green,
                                       fontSize: 12,
@@ -306,87 +312,96 @@ class _DetailScreenState extends State<DetailScreen> {
                         .toList(),
                   ),
                   SizedBox(height: 22.h),
-                  Row(
-                    children: [
-                      Text(
-                        'STREAM SERVER',
+                  if (widget.content.isTmdb) ...[
+                    _watchProvidersSection(),
+                    SizedBox(height: 16.h),
+                    Container(
+                      width: double.infinity,
+                      padding: EdgeInsets.all(13.w),
+                      decoration: BoxDecoration(
+                        color: AppColors.surface,
+                        borderRadius: BorderRadius.circular(12.r),
+                        border: Border.all(color: AppColors.surface3),
+                      ),
+                      child: Text(
+                        'TMDB menyediakan informasi katalog, bukan file video. CineWave hanya dapat memutar judul yang memiliki sumber video resmi dan berizin.',
                         style: TextStyle(
+                          color: AppColors.secondary,
                           fontSize: 11.sp,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: .6,
+                          height: 1.45,
                         ),
                       ),
-                      const Spacer(),
-                      Text(
-                        '${_configuredSourceCount}/5 sources',
-                        style: const TextStyle(
-                          color: AppColors.blue,
+                    ),
+                  ] else ...[
+                    Row(
+                      children: [
+                        Text(
+                          'STREAM SERVER',
+                          style: TextStyle(
+                            fontSize: 11.sp,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: .6,
+                          ),
+                        ),
+                        const Spacer(),
+                        Text(
+                          '${_configuredSourceCount}/5 sources',
+                          style: const TextStyle(color: AppColors.blue, fontSize: 10),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 10.h),
+                    ..._serverList(),
+                    SizedBox(height: 18.h),
+                    Text(
+                      'QUALITY',
+                      style: TextStyle(
+                        fontSize: 11.sp,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: .6,
+                      ),
+                    ),
+                    SizedBox(height: 10.h),
+                    Wrap(
+                      spacing: 8.w,
+                      children: _availableQualities.map((q) => ChoiceChip(
+                        label: Text(q),
+                        selected: _quality == q,
+                        onSelected: (_) => setState(() => _quality = q),
+                        selectedColor: AppColors.red.withValues(alpha: .25),
+                        side: BorderSide(
+                          color: _quality == q ? AppColors.red : AppColors.surface3,
+                        ),
+                        labelStyle: TextStyle(
+                          color: _quality == q ? Colors.white : AppColors.secondary,
                           fontSize: 10,
                         ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 10.h),
-                  ..._serverList(),
-                  SizedBox(height: 18.h),
-                  Text(
-                    'QUALITY',
-                    style: TextStyle(
-                      fontSize: 11.sp,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: .6,
+                      )).toList(),
                     ),
-                  ),
-                  SizedBox(height: 10.h),
-                  Wrap(
-                    spacing: 8.w,
-                    children: _availableQualities
-                        .map(
-                          (q) => ChoiceChip(
-                            label: Text(q),
-                            selected: _quality == q,
-                            onSelected: (_) => setState(() => _quality = q),
-                            selectedColor: AppColors.red.withValues(alpha: .25),
-                            side: BorderSide(
-                              color: _quality == q
-                                  ? AppColors.red
-                                  : AppColors.surface3,
-                            ),
-                            labelStyle: TextStyle(
-                              color: _quality == q
-                                  ? Colors.white
-                                  : AppColors.secondary,
-                              fontSize: 10,
-                            ),
-                          ),
-                        )
-                        .toList(),
-                  ),
-                  SizedBox(height: 24.h),
-                  SizedBox(
-                    width: double.infinity,
-                    child: FilledButton.icon(
-                      onPressed: _starting ? null : _watch,
-                      icon: _starting
-                          ? SizedBox(
-                              width: 16.w,
-                              height: 16.w,
-                              child: const CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
-                              ),
-                            )
-                          : const Icon(Icons.play_arrow_rounded),
-                      label: Text(
-                        _starting ? 'Checking sources...' : 'Watch now',
-                      ),
-                      style: FilledButton.styleFrom(
-                        backgroundColor: AppColors.red,
-                        foregroundColor: Colors.white,
-                        padding: EdgeInsets.symmetric(vertical: 14.h),
+                    SizedBox(height: 24.h),
+                    SizedBox(
+                      width: double.infinity,
+                      child: FilledButton.icon(
+                        onPressed: _starting ? null : _watch,
+                        icon: _starting
+                            ? SizedBox(
+                                width: 16.w,
+                                height: 16.w,
+                                child: const CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : const Icon(Icons.play_arrow_rounded),
+                        label: Text(_starting ? 'Checking sources...' : 'Watch now'),
+                        style: FilledButton.styleFrom(
+                          backgroundColor: AppColors.red,
+                          foregroundColor: Colors.white,
+                          padding: EdgeInsets.symmetric(vertical: 14.h),
+                        ),
                       ),
                     ),
-                  ),
+                  ],
                   SizedBox(height: 10.h),
                   OutlinedButton.icon(
                     onPressed: () => context.read<LibraryCubit>().toggleMyList(
@@ -410,7 +425,7 @@ class _DetailScreenState extends State<DetailScreen> {
                   ),
                   SizedBox(height: 22.h),
                   Text(
-                    'LICENSE & ATTRIBUTION',
+                    widget.content.isTmdb ? 'TMDB ATTRIBUTION' : 'LICENSE & ATTRIBUTION',
                     style: TextStyle(
                       fontSize: 12.sp,
                       fontWeight: FontWeight.w700,
@@ -441,6 +456,107 @@ class _DetailScreenState extends State<DetailScreen> {
         ],
       ),
     );
+  }
+
+  Widget _watchProvidersSection() => FutureBuilder<Map<String, dynamic>?>(
+    future: _providersFuture,
+    builder: (context, snapshot) {
+      if (snapshot.connectionState == ConnectionState.waiting) {
+        return Padding(
+          padding: EdgeInsets.symmetric(vertical: 12.h),
+          child: const Center(child: CircularProgressIndicator(color: AppColors.red)),
+        );
+      }
+      final data = snapshot.data;
+      if (data == null) {
+        return Text(
+          'Informasi penyedia streaming Indonesia belum tersedia.',
+          style: TextStyle(color: AppColors.secondary, fontSize: 11.sp),
+        );
+      }
+
+      const groups = <String, String>{
+        'flatrate': 'SUBSCRIPTION',
+        'free': 'FREE',
+        'ads': 'WITH ADS',
+        'rent': 'RENT',
+        'buy': 'BUY',
+      };
+      final providerWidgets = <Widget>[];
+      for (final entry in groups.entries) {
+        final rows = data[entry.key];
+        if (rows is! List || rows.isEmpty) continue;
+        providerWidgets.add(
+          Padding(
+            padding: EdgeInsets.only(top: 12.h, bottom: 7.h),
+            child: Text(
+              entry.value,
+              style: TextStyle(
+                color: AppColors.secondary,
+                fontSize: 9.sp,
+                fontWeight: FontWeight.w700,
+                letterSpacing: .7,
+              ),
+            ),
+          ),
+        );
+        providerWidgets.add(
+          Wrap(
+            spacing: 7.w,
+            runSpacing: 7.h,
+            children: rows.whereType<Map>().map((row) {
+              final name = row['provider_name']?.toString() ?? 'Streaming service';
+              return ActionChip(
+                label: Text(name, style: TextStyle(fontSize: 10.sp)),
+                onPressed: () => _openProvider(data['link']?.toString()),
+                backgroundColor: AppColors.surface,
+                side: const BorderSide(color: AppColors.surface3),
+              );
+            }).toList(),
+          ),
+        );
+      }
+
+      final link = data['link']?.toString();
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'WHERE TO WATCH • INDONESIA',
+            style: TextStyle(
+              fontSize: 11.sp,
+              fontWeight: FontWeight.w700,
+              letterSpacing: .6,
+            ),
+          ),
+          if (providerWidgets.isEmpty)
+            Padding(
+              padding: EdgeInsets.only(top: 9.h),
+              child: Text(
+                'Belum ada data penyedia resmi untuk judul ini di wilayah Indonesia.',
+                style: TextStyle(color: AppColors.secondary, fontSize: 11.sp),
+              ),
+            )
+          else ...providerWidgets,
+          if (link != null && link.startsWith('https://'))
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton.icon(
+                onPressed: () => _openProvider(link),
+                icon: const Icon(Icons.open_in_new_rounded, size: 15),
+                label: const Text('View official availability'),
+              ),
+            ),
+        ],
+      );
+    },
+  );
+
+  Future<void> _openProvider(String? value) async {
+    if (value == null) return;
+    final uri = Uri.tryParse(value);
+    if (uri == null || uri.scheme != 'https') return;
+    await launchUrl(uri, mode: LaunchMode.externalApplication);
   }
 
   List<String> get _availableQualities {

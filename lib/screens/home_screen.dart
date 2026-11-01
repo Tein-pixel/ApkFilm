@@ -21,6 +21,11 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final PageController _heroController = PageController(viewportFraction: .92);
+  final TextEditingController _searchController = TextEditingController();
+  Timer? _searchDebounce;
+  List<MediaContent>? _searchResults;
+  bool _searchLoading = false;
+  String _selectedExploreFilter = 'All';
   Timer? _autoSlide;
   late Future<List<MediaContent>> _catalogFuture;
   int _selectedTab = 0;
@@ -58,6 +63,8 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void dispose() {
     _autoSlide?.cancel();
+    _searchDebounce?.cancel();
+    _searchController.dispose();
     _heroController.dispose();
     super.dispose();
   }
@@ -177,7 +184,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         SliverToBoxAdapter(
           child: _sectionHeader(
-            'Open Movie Collection',
+            'Movies & Series',
             '${items.length} titles',
           ),
         ),
@@ -215,53 +222,181 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
     if (_selectedTab == 3) return _profileTab();
-    return _catalogTab('Explore', items);
+    return _catalogTab('Explore', items, isExplore: true);
   }
 
   Widget _catalogTab(
     String title,
     List<MediaContent> items, {
     String emptyMessage = 'No titles available.',
-  }) => CustomScrollView(
-    slivers: [
-      SliverToBoxAdapter(
-        child: Padding(
-          padding: EdgeInsets.fromLTRB(18.w, 20.h, 18.w, 16.h),
-          child: Text(
-            title,
-            style: TextStyle(fontSize: 23.sp, fontWeight: FontWeight.w800),
+    bool isExplore = false,
+  }) {
+    final displayed = isExplore ? _filteredExploreItems(items) : items;
+    const filters = [
+      'All', 'Movies', 'Series', 'Drama', 'Anime',
+      'K-Drama', 'C-Drama', 'Thai Drama',
+    ];
+    return CustomScrollView(
+      slivers: [
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(18.w, 20.h, 18.w, 12.h),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: TextStyle(fontSize: 23.sp, fontWeight: FontWeight.w800)),
+                if (isExplore) ...[
+                  SizedBox(height: 14.h),
+                  TextField(
+                    controller: _searchController,
+                    onChanged: _onExploreSearchChanged,
+                    textInputAction: TextInputAction.search,
+                    decoration: InputDecoration(
+                      hintText: 'Search movies, series, anime, drama...',
+                      prefixIcon: const Icon(Icons.search_rounded),
+                      suffixIcon: _searchController.text.isEmpty
+                          ? null
+                          : IconButton(
+                              onPressed: () {
+                                _searchController.clear();
+                                _onExploreSearchChanged('');
+                              },
+                              icon: const Icon(Icons.close_rounded),
+                            ),
+                      filled: true,
+                      fillColor: AppColors.surface,
+                      contentPadding: EdgeInsets.symmetric(vertical: 12.h),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(13.r),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 11.h),
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: filters.map((filter) {
+                        final selected = _selectedExploreFilter == filter;
+                        return Padding(
+                          padding: EdgeInsets.only(right: 7.w),
+                          child: ChoiceChip(
+                            label: Text(filter),
+                            selected: selected,
+                            onSelected: (_) => setState(() => _selectedExploreFilter = filter),
+                            selectedColor: AppColors.red.withValues(alpha: .25),
+                            side: BorderSide(color: selected ? AppColors.red : AppColors.surface3),
+                            labelStyle: TextStyle(
+                              color: selected ? Colors.white : AppColors.secondary,
+                              fontSize: 10.sp,
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                  if (_searchLoading)
+                    Padding(
+                      padding: EdgeInsets.only(top: 10.h),
+                      child: const LinearProgressIndicator(minHeight: 2, color: AppColors.red),
+                    ),
+                ],
+              ],
+            ),
           ),
         ),
-      ),
-      if (items.isEmpty)
-        SliverFillRemaining(
-          hasScrollBody: false,
-          child: Center(
-            child: Text(
-              emptyMessage,
-              style: const TextStyle(color: AppColors.secondary),
+        if (displayed.isEmpty)
+          SliverFillRemaining(
+            hasScrollBody: false,
+            child: Center(
+              child: Text(
+                isExplore && _searchController.text.trim().isNotEmpty
+                    ? (_searchLoading ? 'Searching TMDB...' : 'No results found.')
+                    : emptyMessage,
+                style: const TextStyle(color: AppColors.secondary),
+              ),
+            ),
+          )
+        else
+          SliverPadding(
+            padding: EdgeInsets.fromLTRB(18.w, 4.h, 18.w, 24.h),
+            sliver: SliverGrid.builder(
+              itemCount: displayed.length,
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 3,
+                childAspectRatio: 115 / 170,
+                crossAxisSpacing: 10.w,
+                mainAxisSpacing: 12.h,
+              ),
+              itemBuilder: (_, index) => MovieCard(
+                content: displayed[index],
+                onTap: () => _openDetail(displayed[index]),
+              ),
             ),
           ),
-        )
-      else
-        SliverPadding(
-          padding: EdgeInsets.symmetric(horizontal: 18.w),
-          sliver: SliverGrid.builder(
-            itemCount: items.length,
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 3,
-              childAspectRatio: 115 / 170,
-              crossAxisSpacing: 10.w,
-              mainAxisSpacing: 12.h,
-            ),
-            itemBuilder: (_, index) => MovieCard(
-              content: items[index],
-              onTap: () => _openDetail(items[index]),
-            ),
-          ),
-        ),
-    ],
-  );
+      ],
+    );
+  }
+
+  List<MediaContent> _filteredExploreItems(List<MediaContent> items) {
+    final source = _searchController.text.trim().isEmpty
+        ? items
+        : (_searchResults ?? const <MediaContent>[]);
+    switch (_selectedExploreFilter) {
+      case 'Movies':
+        return source.where((item) => item.type == 'movie').toList();
+      case 'Series':
+        return source.where((item) => item.type == 'tv').toList();
+      case 'Drama':
+        return source.where((item) => item.categories.any(
+          (category) => category.toLowerCase() == 'drama',
+        )).toList();
+      case 'Anime':
+      case 'K-Drama':
+      case 'C-Drama':
+      case 'Thai Drama':
+        return source.where((item) => item.categories.contains(_selectedExploreFilter)).toList();
+      default:
+        return source;
+    }
+  }
+
+  void _onExploreSearchChanged(String value) {
+    _searchDebounce?.cancel();
+    final query = value.trim();
+    if (query.isEmpty) {
+      setState(() {
+        _searchResults = null;
+        _searchLoading = false;
+      });
+      return;
+    }
+    setState(() {
+      _searchResults = null;
+      _searchLoading = true;
+    });
+    _searchDebounce = Timer(
+      const Duration(milliseconds: 450),
+      () => _performExploreSearch(query),
+    );
+  }
+
+  Future<void> _performExploreSearch(String query) async {
+    try {
+      final results = await context.read<CatalogRepository>().searchCatalog(query);
+      if (!mounted || _searchController.text.trim() != query) return;
+      setState(() {
+        _searchResults = results;
+        _searchLoading = false;
+      });
+    } catch (_) {
+      if (!mounted || _searchController.text.trim() != query) return;
+      setState(() {
+        _searchResults = const [];
+        _searchLoading = false;
+      });
+    }
+  }
 
   Widget _profileTab() => ListView(
     padding: EdgeInsets.all(20.w),
@@ -275,7 +410,7 @@ class _HomeScreenState extends State<HomeScreen> {
         style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w800),
       ),
       Text(
-        'Version 7.0.0 • Open Cinema',
+        'Version 7.1.0 • Movies & Series',
         textAlign: TextAlign.center,
         style: TextStyle(fontSize: 10.sp, color: AppColors.secondary),
       ),
@@ -301,6 +436,11 @@ class _HomeScreenState extends State<HomeScreen> {
         subtitle: Text(
           'Big Buck Bunny, Tears of Steel, Sintel, Spring and Sprite Fright are Blender open-movie projects. Check each source licence before redistribution.',
         ),
+      ),
+      const ListTile(
+        leading: Icon(Icons.movie_filter_outlined),
+        title: Text('TMDB attribution'),
+        subtitle: Text('This product uses the TMDB API but is not endorsed or certified by TMDB.'),
       ),
       const ListTile(
         leading: Icon(Icons.security_outlined),
@@ -463,7 +603,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               borderRadius: BorderRadius.circular(5.r),
                             ),
                             child: Text(
-                              'FEATURED OPEN MOVIE',
+                              'FEATURED TITLE',
                               style: TextStyle(
                                 fontSize: 8.sp,
                                 fontWeight: FontWeight.w700,
@@ -508,7 +648,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                               SizedBox(width: 9.w),
                               Text(
-                                'CC / Open Content',
+                                item.isTmdb ? 'TMDB • Metadata' : 'Open Content',
                                 style: TextStyle(
                                   color: AppColors.secondary,
                                   fontSize: 9.sp,
@@ -621,7 +761,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _footerNote() => Padding(
     padding: EdgeInsets.fromLTRB(18.w, 8.h, 18.w, 24.h),
     child: Text(
-      'Demo catalogue contains openly licensed sample films. Commercial titles require authorized content feeds and streaming rights.',
+      'Discover movies, TV series, anime and regional dramas. Playback requires an authorized video source. This product uses the TMDB API but is not endorsed or certified by TMDB.',
       style: TextStyle(fontSize: 9.sp, color: AppColors.tertiary, height: 1.4),
     ),
   );
