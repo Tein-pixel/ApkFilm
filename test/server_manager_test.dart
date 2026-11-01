@@ -85,10 +85,20 @@ void main() {
         final candidates = await manager.getCandidates(contents.first, '1080p');
         expect(candidates, isNotEmpty);
         expect(candidates.first.serverId, 'server1');
-        expect(
-          candidates.map((candidate) => candidate.serverId).toSet(),
-          contains('server2'),
-        );
+        expect(candidates.first.url.toString(), contains('BigBuckBunny.mp4'));
+        for (final content in contents) {
+          final playable = await manager.getCandidates(content, '720p');
+          expect(
+            playable,
+            isNotEmpty,
+            reason: '${content.title} must have at least one configured licensed source.',
+          );
+          expect(
+            content.poster,
+            startsWith('https://'),
+            reason: '${content.title} must have real poster artwork.',
+          );
+        }
         manager.dispose();
       },
     );
