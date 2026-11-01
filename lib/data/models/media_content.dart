@@ -16,6 +16,7 @@ class MediaContent {
     this.poster,
     this.backdrop,
     this.tmdbId,
+    this.subtitles = const {},
   });
 
   final String id;
@@ -34,6 +35,8 @@ class MediaContent {
   final String? backdrop;
   final int? tmdbId;
   final Map<String, Map<String, String>> sources;
+  /// External WebVTT subtitle tracks keyed by display language/name.
+  final Map<String, String> subtitles;
 
   bool get isTmdb => tmdbId != null;
   bool get isMovie => type == 'movie';
@@ -61,6 +64,7 @@ class MediaContent {
     backdrop: backdrop,
     tmdbId: tmdbId,
     sources: sources,
+    subtitles: subtitles,
   );
 
   factory MediaContent.fromTmdb(
@@ -166,6 +170,7 @@ class MediaContent {
       backdrop: imageUrl(json['backdrop_path']?.toString(), 'w1280'),
       tmdbId: tmdbId,
       sources: const {},
+      subtitles: const {},
     );
   }
 
@@ -181,6 +186,10 @@ class MediaContent {
         }
       }
     }
+    final rawSubtitles = json['subtitles'];
+    final parsedSubtitles = rawSubtitles is Map
+        ? rawSubtitles.map((key, value) => MapEntry(key.toString(), value?.toString() ?? ''))
+        : <String, String>{};
     final rawCategories = json['categories'];
     return MediaContent(
       id: json['id']?.toString() ?? '',
@@ -201,6 +210,7 @@ class MediaContent {
       backdrop: json['backdrop']?.toString(),
       tmdbId: (json['tmdbId'] as num?)?.toInt(),
       sources: parsedSources,
+      subtitles: parsedSubtitles,
     );
   }
 
@@ -209,6 +219,6 @@ class MediaContent {
     'year': year, 'rating': rating, 'age': age, 'duration': duration,
     'status': status, 'synopsis': synopsis, 'license': license,
     'attribution': attribution, 'poster': poster, 'backdrop': backdrop,
-    'tmdbId': tmdbId, 'sources': sources,
+    'tmdbId': tmdbId, 'sources': sources, 'subtitles': subtitles,
   };
 }
