@@ -823,7 +823,7 @@ class _HomeScreenState extends State<HomeScreen> {
           SizedBox(width: 8.w),
           _shortcutChip('Drama', Icons.theaters_outlined, 1),
           SizedBox(width: 8.w),
-          _shortcutChip('Anime', Icons.animation_outlined, 2),
+          _shortcutChip('Anime', Icons.movie_filter_outlined, 2),
         ],
       ),
     ),
