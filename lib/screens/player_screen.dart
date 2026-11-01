@@ -113,7 +113,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
         candidate.url,
         videoPlayerOptions: VideoPlayerOptions(mixWithOthers: false),
       );
-      await next.initialize().timeout(const Duration(seconds: 18));
+      await next.initialize().timeout(const Duration(seconds: 30));
       await next.setLooping(false);
       if (position > Duration.zero && next.value.duration > position)
         await next.seekTo(position);
@@ -206,7 +206,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
     if (value.isBuffering && _playbackHasStarted && !_userPaused) {
       _bufferStartedAt ??= DateTime.now();
       if (DateTime.now().difference(_bufferStartedAt!) >=
-          const Duration(seconds: 2)) {
+          const Duration(seconds: 4)) {
         _bufferStartedAt = null;
         unawaited(_downgradeOrSwitch());
       }
