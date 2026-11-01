@@ -1,6 +1,6 @@
 name: cineflix_ultra
-version: 5.0.0+5
-description: CINEFLIX Ultra Premium - legal open-movie catalogue and adaptive streaming demo.
+version: 6.0.0+6
+description: CineWave - licensed open-movie catalogue and adaptive streaming player.
 publish_to: none
 
 environment:
