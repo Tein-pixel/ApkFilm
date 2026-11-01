@@ -2,8 +2,8 @@
   "multi_server_enabled": true,
   "auto_failover": true,
   "quality_downgrade_enabled": true,
-  "buffer_timeout_ms": 2000,
-  "probe_timeout_ms": 2200,
+  "buffer_timeout_ms": 4500,
+  "probe_timeout_ms": 6500,
   "servers": [
     {
       "id": "server1",
