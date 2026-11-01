@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -23,7 +24,7 @@ class MovieCard extends StatelessWidget {
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
-                    _posterPlaceholder(),
+                    _poster(),
                     Positioned(
                       top: 7.h,
                       left: 7.w,
@@ -86,6 +87,19 @@ class MovieCard extends StatelessWidget {
               ),
         ),
       ),
+    );
+  }
+
+  Widget _poster() {
+    final url = content.poster?.trim() ?? '';
+    if (url.isEmpty) return _posterPlaceholder();
+    return CachedNetworkImage(
+      imageUrl: url,
+      fit: BoxFit.cover,
+      memCacheHeight: 900,
+      fadeInDuration: const Duration(milliseconds: 220),
+      placeholder: (_, __) => _posterPlaceholder(),
+      errorWidget: (_, __, ___) => _posterPlaceholder(),
     );
   }
 
