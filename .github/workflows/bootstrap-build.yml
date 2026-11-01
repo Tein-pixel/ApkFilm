@@ -1,0 +1,119 @@
+name: Bootstrap CINEFLIX Ultra v5 Android build
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  bootstrap-build:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Flutter stable
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Restore complete Flutter project from source bundle
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/cineflix-source
+          cat .cineflix_bundle/part-*.b64 | base64 --decode | tar -xz -C /tmp/cineflix-source
+          test -f /tmp/cineflix-source/pubspec.yaml
+          test -f /tmp/cineflix-source/lib/main.dart
+          cp -a /tmp/cineflix-source/. .
+          rm -rf /tmp/cineflix-source .cineflix_bundle
+
+      - name: Generate Android platform scaffold
+        run: flutter create --platforms=android --org com.teinzz --project-name cineflix_ultra .
+
+      - name: Apply Android network permission and supported minimum SDK
+        shell: bash
+        run: |
+          python3 - <<'PYCODE'
+          from pathlib import Path
+          manifest = Path('android/app/src/main/AndroidManifest.xml')
+          text = manifest.read_text()
+          if 'android.permission.INTERNET' not in text:
+              text = text.replace(
+                  '<manifest xmlns:android="http://schemas.android.com/apk/res/android">',
+                  '<manifest xmlns:android="http://schemas.android.com/apk/res/android">\n'
+                  '    <uses-permission android:name="android.permission.INTERNET" />\n'
+                  '    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />'
+              )
+          manifest.write_text(text)
+          gradle_kts = Path('android/app/build.gradle.kts')
+          gradle = Path('android/app/build.gradle')
+          if gradle_kts.exists():
+              source = gradle_kts.read_text()
+              gradle_kts.write_text(source.replace('minSdk = flutter.minSdkVersion', 'minSdk = 24'))
+          elif gradle.exists():
+              source = gradle.read_text()
+              gradle.write_text(source.replace('minSdkVersion flutter.minSdkVersion', 'minSdkVersion 24'))
+          else:
+              raise SystemExit('Could not find Android app Gradle file.')
+          PYCODE
+
+      - name: Resolve Flutter dependencies
+        run: flutter pub get
+
+      - name: Generate Android launcher icons
+        run: dart run flutter_launcher_icons
+
+      - name: Format Dart source
+        run: dart format lib test
+
+      - name: Analyze Flutter project
+        run: flutter analyze
+
+      - name: Run automated tests
+        run: flutter test --reporter expanded
+
+      - name: Build universal release APK
+        run: flutter build apk --release
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: cineflix-ultra-v5-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Commit extracted Flutter source back to main
+        if: success()
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Add CINEFLIX Ultra Premium v5 Flutter project" || exit 0
+          git push
+
+      - name: Publish APK as GitHub Release
+        if: success()
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: cineflix-v5.0.0-build-${{ github.run_number }}
+          name: CINEFLIX Ultra Premium v5 build ${{ github.run_number }}
+          body: |
+            Automated Android release build of CINEFLIX Ultra Premium v5.
+            The bundled catalogue contains open-movie sample titles. Production server slots require authorized media URLs and distribution rights.
+          files: build/app/outputs/flutter-apk/app-release.apk
+          make_latest: true
