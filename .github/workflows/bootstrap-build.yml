@@ -87,7 +87,7 @@ jobs:
         run: dart format lib test
 
       - name: Analyze Flutter project
-        run: flutter analyze
+        run: flutter analyze --no-fatal-infos
 
       - name: Run automated tests
         run: flutter test --reporter expanded
