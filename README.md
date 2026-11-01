@@ -13,7 +13,7 @@ The release contains six Blender Open Movies with poster artwork and title-speci
 | Sintel | 2010 | CC BY 3.0 |
 | Tears of Steel | 2012 | CC BY 3.0 |
 | Spring | 2019 | CC BY 4.0 |
-| Sprite Fright | 2021 | Blender Studio CC BY 1.0; Commons copy CC BY 4.0 |
+| Sprite Fright | 2021 | CC BY 4.0 |
 
 Poster images are loaded from Wikimedia Commons and cached on device. Attribution is included with each title. Some artwork files contain logos or other excluded trademarks; the app uses the source artwork without implying endorsement.
 
@@ -52,7 +52,3 @@ GitHub Actions uploads a `cinewave-v7-apk` artifact and attaches the APK to a Gi
 ## Release validation
 
 The v7 release workflow validates catalog poster responses and playback file signatures before packaging. The Android client also checks for an actual HLS, DASH, MP4 or WebM signature instead of treating an arbitrary successful HTTP response as playable. Public sample origins can still be throttled or become unavailable; a device-level playback test is required to assess real buffering and decoder behavior.
-
-
-### 360p support
-The lowest available rendition is now 360p. This is used for Commons MPEG-4 transcodes of Spring and Sprite Fright to reduce decoding and network load on older Android devices. HLS titles expose the actual tracks published by their master playlist; a fixed 360p file is not advertised as 720p or 1080p.

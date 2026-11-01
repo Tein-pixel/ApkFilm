@@ -183,6 +183,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
       '1080p' => 1080,
       '720p' => 720,
       '480p' => 480,
+      '360p' => 360,
       _ => 2160,
     };
     final eligible =
@@ -231,6 +232,7 @@ class _PlayerScreenState extends State<PlayerScreen> {
       '1080p' => 1080,
       '720p' => 720,
       '480p' => 480,
+      '360p' => 360,
       _ => _tracks.isNotEmpty ? (_tracks.first.height ?? 0) : 0,
     };
     final lower = _tracks.where((t) => (t.height ?? 0) < currentHeight).toList()

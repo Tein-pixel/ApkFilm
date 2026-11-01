@@ -8,7 +8,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('ServerManager', () {
-    test('playback probe validates HLS, DASH, MP4 and WebM signatures', () {
+    test('playback probe validates HLS, DASH, MP4, MOV and WebM signatures', () {
       expect(
         ServerManager.isPlayablePreview(
           Uri.parse('https://media.example/movie/index.m3u8'),
@@ -43,6 +43,14 @@ void main() {
       );
       expect(
         ServerManager.isPlayablePreview(
+          Uri.parse('https://media.example/movie/file.mov'),
+          'video/quicktime',
+          [0, 0, 0, 24, 0x66, 0x74, 0x79, 0x70, 0, 0, 0, 0],
+        ),
+        isTrue,
+      );
+      expect(
+        ServerManager.isPlayablePreview(
           Uri.parse('https://media.example/movie/file.webm'),
           'video/webm',
           [0x1A, 0x45, 0xDF, 0xA3, 0, 0, 0, 0],
@@ -54,14 +62,15 @@ void main() {
 
     test('quality fallback starts at the selected quality and steps down', () {
       final manager = ServerManager();
-      expect(manager.qualityFallbackOrder('1080p'), ['1080p', '720p', '480p']);
+      expect(manager.qualityFallbackOrder('1080p'), ['1080p', '720p', '480p', '360p']);
       expect(manager.qualityFallbackOrder('4K'), [
         '4K',
         '1080p',
         '720p',
         '480p',
+        '360p',
       ]);
-      expect(manager.qualityFallbackOrder('720p'), ['720p', '480p']);
+      expect(manager.qualityFallbackOrder('720p'), ['720p', '480p', '360p']);
       expect(manager.qualityFallbackOrder('480p'), ['480p', '360p']);\n      expect(manager.qualityFallbackOrder('360p'), ['360p']);
       manager.dispose();
     });
@@ -122,7 +131,7 @@ void main() {
             ]),
           );
           for (final server in content.sources.values) {
-            expect(server.keys, containsAll(['480p', '720p', '1080p', '4K']));
+            expect(server.keys, containsAll(['360p', '480p', '720p', '1080p', '4K']));
           }
         }
         final manager = ServerManager(probe: (_) async => true);

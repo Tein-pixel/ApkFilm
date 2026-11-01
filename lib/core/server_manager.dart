@@ -79,7 +79,7 @@ class ServerManager {
       if (qualities is! Map ||
           !['360p', '480p', '720p', '1080p', '4K'].every(qualities.containsKey)) {
         throw const FormatException(
-          'Every server must declare 480p, 720p, 1080p and 4K slots.',
+          'Every server must declare 360p, 480p, 720p, 1080p and 4K slots.',
         );
       }
     }

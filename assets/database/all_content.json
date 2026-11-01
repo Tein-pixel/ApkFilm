@@ -20,35 +20,30 @@
     "attribution": "Big Buck Bunny © 2008 Blender Foundation / www.bigbuckbunny.org. Licensed under CC BY 3.0.",
     "sources": {
       "server1": {
-        "360p": "",
         "480p": "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
         "720p": "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
         "1080p": "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
         "4K": ""
       },
       "server2": {
-        "360p": "",
         "480p": "",
         "720p": "https://uploads.video-commander.com/sample/BigBuckBunny.mp4",
         "1080p": "",
         "4K": ""
       },
       "server3": {
-        "360p": "",
         "480p": "",
         "720p": "",
         "1080p": "",
         "4K": ""
       },
       "server4": {
-        "360p": "",
         "480p": "",
         "720p": "",
         "1080p": "",
         "4K": ""
       },
       "server5": {
-        "360p": "",
         "480p": "",
         "720p": "",
         "1080p": "",
@@ -77,35 +72,30 @@
     "attribution": "Tears of Steel © Blender Foundation. Licensed under CC BY 3.0.",
     "sources": {
       "server1": {
-        "360p": "",
         "480p": "https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8",
         "720p": "https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8",
         "1080p": "https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8",
         "4K": ""
       },
       "server2": {
-        "360p": "",
         "480p": "",
-        "720p": "https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.mp4/.m3u8",
+        "720p": "https://video.blender.org/static/webseed/8533ea43-4271-4a57-9694-e9d0b35e1aa1-720.mp4",
         "1080p": "",
         "4K": ""
       },
       "server3": {
-        "360p": "",
         "480p": "",
         "720p": "",
         "1080p": "",
         "4K": ""
       },
       "server4": {
-        "360p": "",
         "480p": "",
         "720p": "",
         "1080p": "",
         "4K": ""
       },
       "server5": {
-        "360p": "",
         "480p": "",
         "720p": "",
         "1080p": "",
@@ -134,35 +124,30 @@
     "attribution": "Sintel © Blender Foundation / Durian Open Movie Project. Attribution required.",
     "sources": {
       "server1": {
-        "360p": "",
-        "480p": "https://bitmovin-a.akamaihd.net/content/sintel/hls/playlist.m3u8",
-        "720p": "https://bitmovin-a.akamaihd.net/content/sintel/hls/playlist.m3u8",
-        "1080p": "https://bitmovin-a.akamaihd.net/content/sintel/hls/playlist.m3u8",
+        "480p": "",
+        "720p": "https://video.blender.org/static/webseed/0eb052d0-fd51-43e6-aa33-ecdbf77a5d40-720.mp4",
+        "1080p": "",
         "4K": ""
       },
       "server2": {
-        "360p": "",
         "480p": "",
         "720p": "",
         "1080p": "",
         "4K": ""
       },
       "server3": {
-        "360p": "",
         "480p": "",
         "720p": "",
         "1080p": "",
         "4K": ""
       },
       "server4": {
-        "360p": "",
         "480p": "",
         "720p": "",
         "1080p": "",
         "4K": ""
       },
       "server5": {
-        "360p": "",
         "480p": "",
         "720p": "",
         "1080p": "",
@@ -184,42 +169,38 @@
     "age": "SU",
     "duration": "7m",
     "status": "Complete",
-    "poster": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a5/Spring_-_Blender_Open_Movie.webm/1280px--Spring_-_Blender_Open_Movie.webm.jpg",
-    "backdrop": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/a5/Spring_-_Blender_Open_Movie.webm/1280px--Spring_-_Blender_Open_Movie.webm.jpg",
+    "poster": "https://upload.wikimedia.org/wikipedia/commons/0/05/Spring2019PillarPosterBlender.jpg",
+    "backdrop": "https://upload.wikimedia.org/wikipedia/commons/0/05/Spring2019PillarPosterBlender.jpg",
     "synopsis": "An animated short about a shepherd girl and her dog, from Blender's open-movie collection.",
     "license": "Creative Commons Attribution 4.0 (CC BY 4.0)",
     "attribution": "© Blender Foundation | cloud.blender.org/spring. Licensed under CC BY 4.0.",
     "sources": {
       "server1": {
-        "360p": "https://upload.wikimedia.org/wikipedia/commons/transcoded/a/a5/Spring_-_Blender_Open_Movie.webm/Spring_-_Blender_Open_Movie.webm.360p.mpeg4.mov",
+        "quality_mode": "fixed_source",
         "480p": "",
-        "720p": "",
+        "720p": "https://video.blender.org/static/webseed/3d95fb3d-c866-42c8-9db1-fe82f48ccb95-720.mp4",
         "1080p": "",
         "4K": ""
       },
       "server2": {
-        "360p": "",
         "480p": "",
         "720p": "",
         "1080p": "",
         "4K": ""
       },
       "server3": {
-        "360p": "",
         "480p": "",
         "720p": "",
         "1080p": "",
         "4K": ""
       },
       "server4": {
-        "360p": "",
         "480p": "",
         "720p": "",
         "1080p": "",
         "4K": ""
       },
       "server5": {
-        "360p": "",
         "480p": "",
         "720p": "",
         "1080p": "",
@@ -244,39 +225,35 @@
     "poster": "https://commons.wikimedia.org/wiki/Special:Redirect/file/Sprite_Fright-movie_poster.png",
     "backdrop": "https://commons.wikimedia.org/wiki/Special:Redirect/file/Sprite_Fright-movie_poster.png",
     "synopsis": "A Blender Studio open movie short. The sample endpoint supplied here is a 720p public stream.",
-    "license": "Creative Commons Attribution 1.0 (CC BY 1.0) for the Blender Studio project; Commons-hosted source file is separately marked CC BY 4.0.",
-    "attribution": "(CC) Blender Foundation | studio.blender.org. Sprite Fright project materials are CC BY 1.0; the source video file on Wikimedia Commons is marked CC BY 4.0. Blender and project trademarks/logos are excluded.",
+    "license": "Creative Commons Attribution 4.0 (CC BY 4.0); selected trademarks and logos are excluded.",
+    "attribution": "Sprite Fright © Blender Foundation. Film is attributed under CC BY 4.0; Blender and project trademarks/logos are excluded.",
     "sources": {
       "server1": {
-        "360p": "https://upload.wikimedia.org/wikipedia/commons/transcoded/7/76/Sprite_Fright_-_Blender_Open_Movie-full_movie.webm/Sprite_Fright_-_Blender_Open_Movie-full_movie.webm.360p.mpeg4.mov",
+        "quality_mode": "fixed_source",
         "480p": "",
-        "720p": "",
+        "720p": "https://video.blender.org/download/videos/a69d68a5-a0e0-4a80-9d66-49f093c97aaf-720.mp4",
         "1080p": "",
         "4K": ""
       },
       "server2": {
-        "360p": "",
         "480p": "",
         "720p": "",
         "1080p": "",
         "4K": ""
       },
       "server3": {
-        "360p": "",
         "480p": "",
         "720p": "",
         "1080p": "",
         "4K": ""
       },
       "server4": {
-        "360p": "",
         "480p": "",
         "720p": "",
         "1080p": "",
         "4K": ""
       },
       "server5": {
-        "360p": "",
         "480p": "",
         "720p": "",
         "1080p": "",
@@ -305,35 +282,30 @@
     "attribution": "© 2006 Blender Foundation / Netherlands Media Art Institute / www.elephantsdream.org. Licensed under CC BY 2.5.",
     "sources": {
       "server1": {
-        "360p": "",
         "480p": "https://dash.akamaized.net/dash264/TestCases/3b/fraunhofer/aac-lc_stereo_with_video/ElephantsDream/elephants_dream_480p_aaclc_stereo_sidx.mpd",
         "720p": "",
         "1080p": "",
         "4K": ""
       },
       "server2": {
-        "360p": "",
         "480p": "",
         "720p": "",
         "1080p": "",
         "4K": ""
       },
       "server3": {
-        "360p": "",
         "480p": "",
         "720p": "",
         "1080p": "",
         "4K": ""
       },
       "server4": {
-        "360p": "",
         "480p": "",
         "720p": "",
         "1080p": "",
         "4K": ""
       },
       "server5": {
-        "360p": "",
         "480p": "",
         "720p": "",
         "1080p": "",
