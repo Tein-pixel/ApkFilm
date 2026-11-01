@@ -330,7 +330,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               TextSpan(
-                text: 'WAVE',
+                text: 'FLIX',
                 style: TextStyle(
                   color: AppColors.red,
                   fontWeight: FontWeight.w800,
