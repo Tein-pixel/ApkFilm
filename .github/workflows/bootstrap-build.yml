@@ -39,6 +39,13 @@ jobs:
           test -f /tmp/cineflix-source/lib/main.dart
           cp -a /tmp/cineflix-source/. .
           rm -rf /tmp/cineflix-source .cineflix_bundle
+          python3 - <<'PYCODE'
+          from pathlib import Path
+          home = Path('lib/screens/home_screen.dart')
+          source = home.read_text()
+          source = source.replace('destinations: const [', 'destinations: [')
+          home.write_text(source)
+          PYCODE
 
       - name: Generate Android platform scaffold
         run: flutter create --platforms=android --org com.teinzz --project-name cineflix_ultra .
