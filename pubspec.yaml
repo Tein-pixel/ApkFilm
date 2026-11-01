@@ -40,6 +40,7 @@ flutter:
     - assets/icons/
     - assets/config/servers.json
     - assets/database/all_content.json
+    - assets/database/episode_sources.json
 
 flutter_launcher_icons:
   android: true
