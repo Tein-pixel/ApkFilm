@@ -151,10 +151,12 @@ class _PlayerScreenState extends State<PlayerScreen> {
       _tracks = List<VideoTrack>.from(tracks)
         ..sort((a, b) => (b.height ?? 0).compareTo(a.height ?? 0));
       _audioTracks = List<VideoAudioTrack>.from(audioTracks);
-      _selectedAudioTrackId = _audioTracks
+      final selectedAudioTracks = _audioTracks
           .where((track) => track.isSelected)
-          .map((track) => track.id)
-          .firstOrNull;
+          .toList(growable: false);
+      _selectedAudioTrackId = selectedAudioTracks.isEmpty
+          ? null
+          : selectedAudioTracks.first.id;
       _serverLabel = candidate.serverName;
       _quality = selectedTrack != null
           ? _qualityLabel(selectedTrack.height ?? 0)
