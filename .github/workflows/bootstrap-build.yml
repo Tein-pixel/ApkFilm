@@ -29,22 +29,28 @@ jobs:
           channel: stable
           cache: true
 
-      - name: Restore complete Flutter project from source bundle
+      - name: Restore archived source only for an empty bootstrap repository
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p /tmp/cineflix-source
-          cat .cineflix_bundle/part-*.b64 | base64 --decode | tar -xz -C /tmp/cineflix-source
-          test -f /tmp/cineflix-source/pubspec.yaml
-          test -f /tmp/cineflix-source/lib/main.dart
-          cp -a /tmp/cineflix-source/. .
-          rm -rf /tmp/cineflix-source .cineflix_bundle
+          if [[ -f pubspec.yaml && -f lib/main.dart ]]; then
+            echo "Committed Flutter source tree found; building the current source."
+          else
+            mkdir -p /tmp/cineflix-source
+            cat .cineflix_bundle/part-*.b64 | base64 --decode | tar -xz -C /tmp/cineflix-source
+            test -f /tmp/cineflix-source/pubspec.yaml
+            test -f /tmp/cineflix-source/lib/main.dart
+            cp -a /tmp/cineflix-source/. .
+            rm -rf /tmp/cineflix-source
+          fi
+          rm -rf .cineflix_bundle
           python3 - <<'PYCODE'
           from pathlib import Path
           home = Path('lib/screens/home_screen.dart')
-          source = home.read_text()
-          source = source.replace('destinations: const [', 'destinations: [')
-          home.write_text(source)
+          if home.exists():
+              source = home.read_text()
+              source = source.replace('destinations: const [', 'destinations: [')
+              home.write_text(source)
           PYCODE
 
       - name: Generate Android platform scaffold
