@@ -1,6 +1,6 @@
-# CineWave 6.0.0
+# CINEFLIX Ultra 6.0.0
 
-CineWave is an Android-first catalogue and streaming player for openly licensed or otherwise authorized media. Its design takes inspiration from modern streaming interfaces: cinematic featured artwork, portrait posters, compact metadata, saved titles, watch history and a focused player.
+CINEFLIX Ultra is an Android-first catalogue and streaming player for openly licensed or otherwise authorized media. Its design takes inspiration from modern streaming interfaces: cinematic featured artwork, portrait posters, compact metadata, saved titles, watch history and a focused player.
 
 ## Current bundled catalogue
 
@@ -46,4 +46,4 @@ Keep server credentials on a backend. Do not embed private CDN tokens or API sec
 - Network permissions: INTERNET and ACCESS_NETWORK_STATE.
 - Build pipeline: Java 17, Flutter stable, `flutter pub get`, formatting, analyzer, tests, release APK.
 
-GitHub Actions uploads a `cinewave-v6-apk` artifact and attaches the APK to a GitHub Release.
+GitHub Actions uploads a `cineflix-ultra-v6-apk` artifact and attaches the APK to a GitHub Release.
