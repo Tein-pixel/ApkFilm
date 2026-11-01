@@ -13,7 +13,7 @@ The release contains six Blender Open Movies with poster artwork and title-speci
 | Sintel | 2010 | CC BY 3.0 |
 | Tears of Steel | 2012 | CC BY 3.0 |
 | Spring | 2019 | CC BY 4.0 |
-| Sprite Fright | 2021 | CC BY 4.0 |
+| Sprite Fright | 2021 | Blender Studio CC BY 1.0; Commons copy CC BY 4.0 |
 
 Poster images are loaded from Wikimedia Commons and cached on device. Attribution is included with each title. Some artwork files contain logos or other excluded trademarks; the app uses the source artwork without implying endorsement.
 
@@ -36,7 +36,7 @@ To add an authorized title, append an object to `assets/database/all_content.jso
 - a unique `id`, title, year, synopsis, categories and age rating;
 - an HTTPS `poster` URL and optional `backdrop` URL that you are allowed to use;
 - a license and attribution string;
-- at least one genuine source URL for the same title, under one of `server1` through `server5`, using only real rendition labels (`480p`, `720p`, `1080p`, `4K`).
+- at least one genuine source URL for the same title, under one of `server1` through `server5`, using only real rendition labels (`360p`, `480p`, `720p`, `1080p`, `4K`).
 
 Keep server credentials on a backend. Do not embed private CDN tokens or API secrets in an APK because APK assets can be extracted.
 
@@ -52,3 +52,7 @@ GitHub Actions uploads a `cinewave-v7-apk` artifact and attaches the APK to a Gi
 ## Release validation
 
 The v7 release workflow validates catalog poster responses and playback file signatures before packaging. The Android client also checks for an actual HLS, DASH, MP4 or WebM signature instead of treating an arbitrary successful HTTP response as playable. Public sample origins can still be throttled or become unavailable; a device-level playback test is required to assess real buffering and decoder behavior.
+
+
+### Low-bandwidth playback
+360p is an explicit lowest rendition for Commons transcodes. It is not advertised as 480p. The player prefers available tracks and falls back through the renditions actually configured for each title.

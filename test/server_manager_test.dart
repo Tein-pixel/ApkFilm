@@ -71,7 +71,8 @@ void main() {
         '360p',
       ]);
       expect(manager.qualityFallbackOrder('720p'), ['720p', '480p', '360p']);
-      expect(manager.qualityFallbackOrder('480p'), ['480p', '360p']);\n      expect(manager.qualityFallbackOrder('360p'), ['360p']);
+      expect(manager.qualityFallbackOrder('480p'), ['480p', '360p']);
+      expect(manager.qualityFallbackOrder('360p'), ['360p']);
       manager.dispose();
     });
 

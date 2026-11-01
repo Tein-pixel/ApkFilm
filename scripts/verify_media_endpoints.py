@@ -28,7 +28,13 @@ def read_prefix(url: str):
         except Exception as exc:
             error = exc
             if attempt < RETRIES:
-                time.sleep(1.5 * (attempt + 1))
+                retry_after = 0
+                if hasattr(exc, "headers") and exc.headers:
+                    try:
+                        retry_after = float(exc.headers.get("Retry-After", "0"))
+                    except (TypeError, ValueError):
+                        retry_after = 0
+                time.sleep(max(retry_after, 2.0 * (attempt + 1)))
     raise RuntimeError(str(error))
 
 
@@ -39,7 +45,7 @@ def media_signature_ok(url: str, content_type: str, data: bytes) -> bool:
         return text.startswith("#EXTM3U")
     if path.endswith(".mpd") or "dash+xml" in content_type:
         return "<MPD" in text or ":MPD" in text
-    if path.endswith((".mp4", ".m4v")) or "video/mp4" in content_type:
+    if path.endswith((".mp4", ".m4v", ".mov")) or "video/mp4" in content_type or "video/quicktime" in content_type:
         return len(data) >= 8 and data[4:8] == b"ftyp"
     if path.endswith(".webm") or "webm" in content_type:
         return data.startswith(bytes((0x1A, 0x45, 0xDF, 0xA3)))
@@ -74,7 +80,7 @@ def main() -> int:
             if not isinstance(server, dict):
                 continue
             for key, value in server.items():
-                if key not in ("480p", "720p", "1080p", "4K"):
+                if key not in ("360p", "480p", "720p", "1080p", "4K"):
                     continue
                 url = (value or "").strip()
                 if url:
