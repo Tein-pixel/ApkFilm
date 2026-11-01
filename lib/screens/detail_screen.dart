@@ -75,47 +75,54 @@ class _DetailScreenState extends State<DetailScreen> {
     }
   }
 
-  Future<void> _watch() async {
+  Future<void> _watch() =>
+      _watchTarget(widget.content, resume: widget.resume);
+
+  Future<void> _watchTarget(
+    MediaContent target, {
+    bool resume = false,
+  }) async {
     if (_starting) return;
     setState(() => _starting = true);
     final manager = context.read<ServerManager>();
     try {
       final source = await manager.getBestSource(
-        widget.content.id,
+        target.id,
         _quality,
         preferredServer: _serverId,
-        content: widget.content,
+        content: target,
       );
       if (!mounted) return;
       if (source == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text(
-              'Tidak ada sumber yang dapat dijangkau. Periksa internet atau konfigurasi server.',
+              'Sumber video resmi untuk judul atau episode ini belum tersedia atau tidak dapat dijangkau.',
             ),
           ),
         );
         return;
       }
       final savedSeconds =
-          context.read<LibraryCubit>().progress[widget.content.id] ?? 0;
+          context.read<LibraryCubit>().progress[target.id] ?? 0;
       await Navigator.of(context).push(
         MaterialPageRoute<void>(
           builder: (_) => PlayerScreen(
-            content: widget.content,
+            content: target,
             initialSource: source,
             preferredQuality: _quality,
-            initialPosition: widget.resume
+            initialPosition: resume
                 ? Duration(seconds: savedSeconds)
                 : Duration.zero,
           ),
         ),
       );
     } catch (error) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Gagal menyiapkan stream: $error')),
         );
+      }
     } finally {
       if (mounted) setState(() => _starting = false);
     }
@@ -716,15 +723,99 @@ class _DetailScreenState extends State<DetailScreen> {
                 ],
               ),
             ),
-            Icon(
-              selected ? Icons.check_circle_rounded : Icons.chevron_right_rounded,
-              color: selected ? AppColors.blue : AppColors.secondary,
-              size: 20,
+            IconButton(
+              tooltip: 'Putar episode',
+              onPressed: () => _playEpisode(episode),
+              icon: const Icon(Icons.play_circle_outline_rounded),
+              color: AppColors.blue,
+              iconSize: 25,
+              visualDensity: VisualDensity.compact,
             ),
           ],
         ),
       ),
     );
+  }
+
+  Future<void> _playEpisode(Map episode) async {
+    final seriesId = widget.content.tmdbId;
+    final seasonNumber = _selectedSeasonNumber;
+    final episodeNumber = (episode['episode_number'] as num?)?.toInt();
+    if (seriesId == null || seasonNumber == null || episodeNumber == null) {
+      return;
+    }
+
+    final config = await context.read<CatalogRepository>().getEpisodePlaybackConfig(
+      seriesId: seriesId,
+      seasonNumber: seasonNumber,
+      episodeNumber: episodeNumber,
+    );
+    if (!mounted) return;
+
+    final rawSources = config?['sources'];
+    final sources = <String, Map<String, String>>{};
+    if (rawSources is Map) {
+      for (final entry in rawSources.entries) {
+        if (entry.value is Map) {
+          sources[entry.key.toString()] = (entry.value as Map).map(
+            (key, value) => MapEntry(key.toString(), value?.toString() ?? ''),
+          );
+        }
+      }
+    }
+    final configured = sources.values.any(
+      (qualities) => qualities.values.any((value) {
+        final uri = Uri.tryParse(value.trim());
+        return uri != null && uri.scheme == 'https' && uri.host.isNotEmpty;
+      }),
+    );
+    if (!configured) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Sumber video berizin untuk episode ini belum dikonfigurasi. Data TMDB hanya menyediakan informasi episode.',
+          ),
+        ),
+      );
+      return;
+    }
+
+    final rawSubtitles = config?['subtitles'];
+    final subtitles = rawSubtitles is Map
+        ? rawSubtitles.map(
+            (key, value) => MapEntry(key.toString(), value?.toString() ?? ''),
+          )
+        : <String, String>{};
+    final runtime = (episode['runtime'] as num?)?.toInt() ?? 0;
+    final stillPath = episode['still_path']?.toString() ?? '';
+    final episodeNumberLabel = episodeNumber.toString().padLeft(2, '0');
+    final seasonLabel = seasonNumber.toString().padLeft(2, '0');
+    final title = episode['name']?.toString().trim().isNotEmpty == true
+        ? episode['name'].toString()
+        : 'Episode $episodeNumber';
+    final target = MediaContent(
+      id: 'tmdb:tv:$seriesId:s$seasonNumber:e$episodeNumber',
+      title: '${widget.content.title} • S$seasonLabel:E$episodeNumberLabel • $title',
+      type: 'movie',
+      categories: widget.content.categories,
+      year: widget.content.year,
+      rating: (episode['vote_average'] as num?)?.toDouble() ??
+          widget.content.rating,
+      age: widget.content.age,
+      duration: runtime > 0 ? '${runtime}m' : 'Episode',
+      status: 'TV Episode',
+      synopsis: episode['overview']?.toString() ?? widget.content.synopsis,
+      license: 'Authorized episode source configuration',
+      attribution: widget.content.attribution,
+      poster: stillPath.isEmpty
+          ? widget.content.poster
+          : 'https://image.tmdb.org/t/p/w500$stillPath',
+      backdrop: widget.content.backdrop,
+      tmdbId: null,
+      sources: sources,
+      subtitles: subtitles,
+    );
+    await _watchTarget(target);
   }
 
   Future<void> _openEpisodeProviderAvailability() async {
