@@ -8,6 +8,50 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('ServerManager', () {
+    test('playback probe validates HLS, DASH, MP4 and WebM signatures', () {
+      expect(
+        ServerManager.isPlayablePreview(
+          Uri.parse('https://media.example/movie/index.m3u8'),
+          'application/vnd.apple.mpegurl',
+          '#EXTM3U\n#EXT-X-VERSION:3'.codeUnits,
+        ),
+        isTrue,
+      );
+      expect(
+        ServerManager.isPlayablePreview(
+          Uri.parse('https://media.example/movie/index.m3u8'),
+          'text/html',
+          '<html><body>Access denied</body></html>'.codeUnits,
+        ),
+        isFalse,
+      );
+      expect(
+        ServerManager.isPlayablePreview(
+          Uri.parse('https://media.example/movie/file.mp4'),
+          'video/mp4',
+          [0, 0, 0, 24, 0x66, 0x74, 0x79, 0x70, 0, 0, 0, 0],
+        ),
+        isTrue,
+      );
+      expect(
+        ServerManager.isPlayablePreview(
+          Uri.parse('https://media.example/movie/manifest.mpd'),
+          'application/dash+xml',
+          '<?xml version="1.0"?><MPD'.codeUnits,
+        ),
+        isTrue,
+      );
+      expect(
+        ServerManager.isPlayablePreview(
+          Uri.parse('https://media.example/movie/file.webm'),
+          'video/webm',
+          [0x1A, 0x45, 0xDF, 0xA3, 0, 0, 0, 0],
+        ),
+        isTrue,
+      );
+    });
+
+
     test('quality fallback starts at the selected quality and steps down', () {
       final manager = ServerManager();
       expect(manager.qualityFallbackOrder('1080p'), ['1080p', '720p', '480p']);

@@ -270,12 +270,12 @@ class _HomeScreenState extends State<HomeScreen> {
       Image.asset('assets/images/app_logo.png', width: 84.w, height: 84.w),
       SizedBox(height: 14.h),
       Text(
-        'CINEFLIX ULTRA',
+        'CINEWAVE',
         textAlign: TextAlign.center,
         style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w800),
       ),
       Text(
-        'Version 5.0.0 • Legal open-movie demo',
+        'Version 7.0.0 • Open Cinema',
         textAlign: TextAlign.center,
         style: TextStyle(fontSize: 10.sp, color: AppColors.secondary),
       ),
@@ -330,7 +330,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
               TextSpan(
-                text: 'FLIX',
+                text: 'WAVE',
                 style: TextStyle(
                   color: AppColors.red,
                   fontWeight: FontWeight.w800,

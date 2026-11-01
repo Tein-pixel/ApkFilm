@@ -115,7 +115,7 @@ class ServerManager {
       for (final quality in qualityFallbackOrder(preferredQuality)) {
         final raw = source[quality]?.trim() ?? '';
         final uri = Uri.tryParse(raw);
-        if (uri == null || uri.scheme != 'https' || !seen.add(raw)) continue;
+        if (uri == null || uri.scheme != 'https' || uri.host.isEmpty || !seen.add(raw)) continue;
         result.add(
           PlaybackSource(
             serverId: server.id,
@@ -147,33 +147,89 @@ class ServerManager {
     return null;
   }
 
+  /// Validate bytes from the origin, not only its HTTP status. This rejects
+  /// HTML error/login pages that incorrectly return HTTP 200.
+  static bool isPlayablePreview(
+    Uri uri,
+    String contentType,
+    List<int> prefix,
+  ) {
+    if (prefix.isEmpty) return false;
+    final type = contentType.toLowerCase();
+    final path = uri.path.toLowerCase();
+    final text = utf8
+        .decode(prefix, allowMalformed: true)
+        .replaceFirst('\uFEFF', '')
+        .trimLeft();
+
+    if (path.endsWith('.m3u8') || type.contains('mpegurl')) {
+      return text.startsWith('#EXTM3U');
+    }
+    if (path.endsWith('.mpd') || type.contains('dash+xml')) {
+      return text.contains('<MPD') || text.contains(':MPD');
+    }
+    if (path.endsWith('.mp4') ||
+        path.endsWith('.m4v') ||
+        type.contains('video/mp4')) {
+      return prefix.length >= 8 &&
+          String.fromCharCodes(prefix.sublist(4, 8)) == 'ftyp';
+    }
+    if (path.endsWith('.webm') || type.contains('webm')) {
+      return prefix.length >= 4 &&
+          prefix[0] == 0x1A &&
+          prefix[1] == 0x45 &&
+          prefix[2] == 0xDF &&
+          prefix[3] == 0xA3;
+    }
+    return false;
+  }
+
   Future<bool> isReachable(Uri uri) async {
     if (_probeOverride != null) return _probeOverride(uri);
+    StreamIterator<List<int>>? iterator;
     try {
       final response = await _dio
           .getUri<ResponseBody>(
             uri,
             options: Options(
               responseType: ResponseType.stream,
-              headers: {'Range': 'bytes=0-512'},
-              validateStatus: (s) => s != null && s >= 200 && s < 500,
+              headers: {
+                'Range': 'bytes=0-4095',
+                'Accept': '*/*',
+                'User-Agent': 'CineWave-Android/7.0',
+              },
+              validateStatus: (status) =>
+                  status != null && status >= 200 && status < 500,
             ),
           )
           .timeout(Duration(milliseconds: _probeTimeoutMs));
-      final body = response.data;
-      if (body != null) {
-        final subscription = body.stream.listen((_) {});
-        await subscription.cancel();
+
+      final status = response.statusCode ?? 0;
+      if (status < 200 || status > 206 || response.data == null) {
+        return false;
       }
-      return response.statusCode != null &&
-          response.statusCode! >= 200 &&
-          response.statusCode! < 400;
+
+      iterator = StreamIterator<List<int>>(response.data!.stream);
+      final prefix = <int>[];
+      while (prefix.length < 4096 &&
+          await iterator.moveNext().timeout(
+            Duration(milliseconds: _probeTimeoutMs),
+          )) {
+        prefix.addAll(iterator.current.take(4096 - prefix.length));
+        if (prefix.length >= 16) break;
+      }
+
+      final contentType =
+          response.headers.value(Headers.contentTypeHeader) ?? '';
+      return isPlayablePreview(uri, contentType, prefix);
     } on TimeoutException {
       return false;
     } on DioException {
       return false;
     } catch (_) {
       return false;
+    } finally {
+      await iterator?.cancel();
     }
   }
 

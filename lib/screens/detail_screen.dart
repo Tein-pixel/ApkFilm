@@ -28,9 +28,9 @@ class _DetailScreenState extends State<DetailScreen> {
   void initState() {
     super.initState();
     _setSuggestedQuality();
-    _serverId = widget.content.sources.keys.isEmpty
-        ? null
-        : widget.content.sources.keys.first;
+    const serverIds = ['server1', 'server2', 'server3', 'server4', 'server5'];
+    final readyServers = serverIds.where(_hasUsableSource).toList();
+    _serverId = readyServers.isEmpty ? null : readyServers.first;
   }
 
   Future<void> _setSuggestedQuality() async {
@@ -45,7 +45,18 @@ class _DetailScreenState extends State<DetailScreen> {
           : result.contains(ConnectivityResult.mobile)
           ? '720p'
           : '480p';
-      if (mounted) setState(() => _quality = suggested);
+      const qualityOrder = ['480p', '720p', '1080p', '4K'];
+      final available = _availableQualities;
+      final limit = qualityOrder.indexOf(suggested);
+      final suitable = available
+          .where((quality) => qualityOrder.indexOf(quality) <= limit)
+          .toList();
+      final selected = suitable.isNotEmpty
+          ? suitable.last
+          : available.isNotEmpty
+          ? available.first
+          : '480p';
+      if (mounted) setState(() => _quality = selected);
     } catch (_) {
       if (mounted) setState(() => _quality = '480p');
     }
@@ -434,11 +445,13 @@ class _DetailScreenState extends State<DetailScreen> {
 
   List<String> get _availableQualities {
     const order = ['480p', '720p', '1080p', '4K'];
-    return order
-        .where((quality) => widget.content.sources.values.any(
-              (source) => (source[quality]?.trim().isNotEmpty ?? false),
-            ))
-        .toList(growable: false);
+    return order.where((quality) {
+      return widget.content.sources.values.any((source) {
+        final raw = source[quality]?.trim() ?? '';
+        final uri = Uri.tryParse(raw);
+        return uri != null && uri.scheme == 'https' && uri.host.isNotEmpty;
+      });
+    }).toList(growable: false);
   }
 
   int get _configuredSourceCount => [
@@ -462,19 +475,30 @@ class _DetailScreenState extends State<DetailScreen> {
   List<Widget> _serverList() {
     const ids = ['server1', 'server2', 'server3', 'server4', 'server5'];
     final names = {
-      'server1': 'Server 1 • Primary Demo',
-      'server2': 'Server 2 • Backup Demo',
-      'server3': 'Server 3 • BunnyCDN',
-      'server4': 'Server 4 • Cloudflare R2 / B2',
-      'server5': 'Server 5 • Emergency Mirror',
+      'server1': 'Primary • Adaptive Stream',
+      'server2': 'Backup • MP4 Origin',
+      'server3': 'Custom Origin 1',
+      'server4': 'Custom Origin 2',
+      'server5': 'Emergency Mirror',
     };
-    return ids.map((id) {
-      final available = _hasUsableSource(id);
+    final configured = ids.where(_hasUsableSource).toList(growable: false);
+    if (configured.isEmpty) {
+      return [
+        Padding(
+          padding: EdgeInsets.symmetric(vertical: 12.h),
+          child: Text(
+            'Belum ada sumber streaming resmi yang dikonfigurasi.',
+            style: TextStyle(color: AppColors.secondary, fontSize: 11.sp),
+          ),
+        ),
+      ];
+    }
+    return configured.map((id) {
       final selected = _serverId == id;
       return Padding(
         padding: EdgeInsets.only(bottom: 7.h),
         child: InkWell(
-          onTap: available ? () => setState(() => _serverId = id) : null,
+          onTap: () => setState(() => _serverId = id),
           borderRadius: BorderRadius.circular(10.r),
           child: Container(
             padding: EdgeInsets.symmetric(horizontal: 11.w, vertical: 10.h),
@@ -489,38 +513,30 @@ class _DetailScreenState extends State<DetailScreen> {
             ),
             child: Row(
               children: [
-                Icon(
-                  available ? Icons.dns_outlined : Icons.add_link,
-                  color: available ? AppColors.blue : AppColors.tertiary,
-                  size: 17,
-                ),
+                const Icon(Icons.dns_outlined, color: AppColors.blue, size: 17),
                 SizedBox(width: 9.w),
                 Expanded(
                   child: Text(
                     names[id]!,
-                    style: TextStyle(
-                      fontSize: 12.sp,
-                      color: available ? Colors.white : AppColors.tertiary,
-                    ),
+                    style: TextStyle(fontSize: 12.sp, color: Colors.white),
                   ),
                 ),
-                Text(
-                  available ? 'READY' : 'SETUP NEEDED',
+                const Text(
+                  'AVAILABLE',
                   style: TextStyle(
-                    color: available ? AppColors.green : AppColors.tertiary,
-                    fontSize: 12,
+                    color: AppColors.green,
+                    fontSize: 10,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
                 SizedBox(width: 8.w),
-                if (available)
-                  Icon(
-                    selected
-                        ? Icons.radio_button_checked
-                        : Icons.radio_button_off,
-                    color: selected ? AppColors.red : AppColors.secondary,
-                    size: 16,
-                  ),
+                Icon(
+                  selected
+                      ? Icons.radio_button_checked
+                      : Icons.radio_button_off,
+                  color: selected ? AppColors.red : AppColors.secondary,
+                  size: 16,
+                ),
               ],
             ),
           ),

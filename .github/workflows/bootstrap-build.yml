@@ -1,4 +1,4 @@
-name: CINEFLIX Ultra Android release build
+name: CineWave Android v7 release build
 
 on:
   push:
@@ -90,6 +90,19 @@ jobs:
       - name: Resolve Flutter dependencies
         run: flutter pub get
 
+      - name: Validate catalog images and playback endpoints
+        run: python3 scripts/verify_media_endpoints.py
+
+      - name: Set Android application label
+        run: |
+          python3 - <<'PYCODE'
+          from pathlib import Path
+          path = Path("android/app/src/main/AndroidManifest.xml")
+          source = path.read_text()
+          source = source.replace('android:label="CINEFLIX Ultra"', 'android:label="CineWave"')
+          path.write_text(source)
+          PYCODE
+
       - name: Generate Android launcher icons
         run: dart run flutter_launcher_icons
 
@@ -108,7 +121,7 @@ jobs:
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: cineflix-ultra-v6-apk
+          name: cinewave-v7-apk
           path: build/app/outputs/flutter-apk/app-release.apk
           if-no-files-found: error
           retention-days: 30
@@ -117,10 +130,10 @@ jobs:
         if: success()
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: cineflix-ultra-v6.0.0-build-${{ github.run_number }}
-          name: CINEFLIX Ultra v6.0.0 build ${{ github.run_number }}
+          tag_name: cinewave-v7.0.0-build-${{ github.run_number }}
+          name: CineWave v7.0.0 build ${{ github.run_number }}
           body: |
-            Automated Android release build of CINEFLIX Ultra 6.0.0.
+            Automated Android release build of CineWave 7.0.0.
             The bundled catalogue contains openly licensed Blender Open Movies. Streaming sources are public demo origins; availability may vary by network and origin.
           files: build/app/outputs/flutter-apk/app-release.apk
           make_latest: true

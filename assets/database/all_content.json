@@ -225,8 +225,8 @@
     "poster": "https://commons.wikimedia.org/wiki/Special:Redirect/file/Sprite_Fright-movie_poster.png",
     "backdrop": "https://commons.wikimedia.org/wiki/Special:Redirect/file/Sprite_Fright-movie_poster.png",
     "synopsis": "A Blender Studio open movie short. The sample endpoint supplied here is a 720p public stream.",
-    "license": "Creative Commons Attribution 1.0 (CC BY 1.0), subject to excluded trademarks and separately marked assets",
-    "attribution": "© Blender Foundation | studio.blender.org. Licensed under CC BY 1.0; Blender and project logos/trademarks are excluded.",
+    "license": "Creative Commons Attribution 4.0 (CC BY 4.0); selected trademarks and logos are excluded.",
+    "attribution": "Sprite Fright © Blender Foundation. Film is attributed under CC BY 4.0; Blender and project trademarks/logos are excluded.",
     "sources": {
       "server1": {
         "quality_mode": "fixed_source",

@@ -69,6 +69,15 @@ class _PlayerScreenState extends State<PlayerScreen> {
         widget.preferredQuality,
         preferredServer: widget.initialSource.serverId,
       );
+      if (_candidates.isEmpty) {
+        if (mounted) {
+          setState(() {
+            _loading = false;
+            _error = 'Belum ada sumber streaming yang valid untuk judul ini.';
+          });
+        }
+        return;
+      }
       final first = _candidates.indexWhere(
         (e) => e.url == widget.initialSource.url,
       );
@@ -613,9 +622,10 @@ class _PlayerScreenState extends State<PlayerScreen> {
       _error = null;
       _loading = true;
     });
+    final resumePosition = _controller?.value.position ?? widget.initialPosition;
     await _openCandidate(
       _candidateIndex,
-      position: widget.initialPosition,
+      position: resumePosition,
       resume: true,
     );
   }

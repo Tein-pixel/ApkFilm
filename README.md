@@ -1,6 +1,6 @@
-# CINEFLIX Ultra 6.0.0
+# CineWave 7.0.0
 
-CINEFLIX Ultra is an Android-first catalogue and streaming player for openly licensed or otherwise authorized media. Its design takes inspiration from modern streaming interfaces: cinematic featured artwork, portrait posters, compact metadata, saved titles, watch history and a focused player.
+CineWave is an Android-first catalogue and streaming player for openly licensed or otherwise authorized media. Its design takes inspiration from modern streaming interfaces: cinematic featured artwork, portrait posters, compact metadata, saved titles, watch history and a focused player.
 
 ## Current bundled catalogue
 
@@ -13,7 +13,7 @@ The release contains six Blender Open Movies with poster artwork and title-speci
 | Sintel | 2010 | CC BY 3.0 |
 | Tears of Steel | 2012 | CC BY 3.0 |
 | Spring | 2019 | CC BY 4.0 |
-| Sprite Fright | 2021 | CC BY 1.0 |
+| Sprite Fright | 2021 | CC BY 4.0 |
 
 Poster images are loaded from Wikimedia Commons and cached on device. Attribution is included with each title. Some artwork files contain logos or other excluded trademarks; the app uses the source artwork without implying endorsement.
 
@@ -46,4 +46,9 @@ Keep server credentials on a backend. Do not embed private CDN tokens or API sec
 - Network permissions: INTERNET and ACCESS_NETWORK_STATE.
 - Build pipeline: Java 17, Flutter stable, `flutter pub get`, formatting, analyzer, tests, release APK.
 
-GitHub Actions uploads a `cineflix-ultra-v6-apk` artifact and attaches the APK to a GitHub Release.
+GitHub Actions uploads a `cinewave-v7-apk` artifact and attaches the APK to a GitHub Release.
+
+
+## Release validation
+
+The v7 release workflow validates catalog poster responses and playback file signatures before packaging. The Android client also checks for an actual HLS, DASH, MP4 or WebM signature instead of treating an arbitrary successful HTTP response as playable. Public sample origins can still be throttled or become unavailable; a device-level playback test is required to assess real buffering and decoder behavior.
