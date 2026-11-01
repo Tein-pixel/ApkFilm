@@ -60,6 +60,17 @@ class CatalogRepository {
   Future<Map<String, dynamic>?> getWatchProviders(MediaContent content) =>
       _tmdb.getWatchProviders(content);
 
+  Future<Map<String, dynamic>?> getTvSeasonDetails(
+    MediaContent content,
+    int seasonNumber,
+  ) => _tmdb.getTvSeasonDetails(content, seasonNumber);
+
+  Future<List<Map<String, dynamic>>> getIndonesiaProviders() =>
+      _tmdb.getIndonesiaProviders();
+
+  Future<List<MediaContent>> discoverByProvider(int providerId) =>
+      _tmdb.discoverByProvider(providerId);
+
   Future<List<MediaContent>> _loadLocalCatalog() async {
     final raw = await rootBundle.loadString('assets/database/all_content.json');
     final decoded = jsonDecode(raw);
