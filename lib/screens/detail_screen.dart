@@ -464,14 +464,25 @@ class _DetailScreenState extends State<DetailScreen> {
       if (snapshot.connectionState == ConnectionState.waiting) {
         return Padding(
           padding: EdgeInsets.symmetric(vertical: 12.h),
-          child: const Center(child: CircularProgressIndicator(color: AppColors.red)),
+          child: const Center(
+            child: CircularProgressIndicator(color: AppColors.red),
+          ),
         );
       }
       final data = snapshot.data;
       if (data == null) {
-        return Text(
-          'Informasi penyedia streaming Indonesia belum tersedia.',
-          style: TextStyle(color: AppColors.secondary, fontSize: 11.sp),
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Informasi penyedia streaming Indonesia belum tersedia.',
+              style: TextStyle(color: AppColors.secondary, fontSize: 11.sp),
+            ),
+            TextButton(
+              onPressed: () => _openProvider('https://www.justwatch.com/id'),
+              child: const Text('JustWatch'),
+            ),
+          ],
         );
       }
 
@@ -506,11 +517,11 @@ class _DetailScreenState extends State<DetailScreen> {
             runSpacing: 7.h,
             children: rows.whereType<Map>().map((row) {
               final name = row['provider_name']?.toString() ?? 'Streaming service';
-              return ActionChip(
+              return Chip(
                 label: Text(name, style: TextStyle(fontSize: 10.sp)),
-                onPressed: () => _openProvider(data['link']?.toString()),
                 backgroundColor: AppColors.surface,
                 side: const BorderSide(color: AppColors.surface3),
+                visualDensity: VisualDensity.compact,
               );
             }).toList(),
           ),
@@ -523,15 +534,28 @@ class _DetailScreenState extends State<DetailScreen> {
         children: [
           Text(
             'WHERE TO WATCH • INDONESIA',
+            style: TextStyle(
+              fontSize: 11.sp,
+              fontWeight: FontWeight.w700,
+              letterSpacing: .6,
+            ),
+          ),
           SizedBox(height: 5.h),
           Row(
             children: [
-              const Icon(Icons.info_outline_rounded, size: 12, color: AppColors.secondary),
+              const Icon(
+                Icons.info_outline_rounded,
+                size: 12,
+                color: AppColors.secondary,
+              ),
               SizedBox(width: 5.w),
               Expanded(
                 child: Text(
                   'Availability data provided by JustWatch.',
-                  style: TextStyle(color: AppColors.secondary, fontSize: 9.sp),
+                  style: TextStyle(
+                    color: AppColors.secondary,
+                    fontSize: 9.sp,
+                  ),
                 ),
               ),
               TextButton(
@@ -539,12 +563,6 @@ class _DetailScreenState extends State<DetailScreen> {
                 child: const Text('JustWatch'),
               ),
             ],
-          ),
-            style: TextStyle(
-              fontSize: 11.sp,
-              fontWeight: FontWeight.w700,
-              letterSpacing: .6,
-            ),
           ),
           if (providerWidgets.isEmpty)
             Padding(
@@ -554,7 +572,8 @@ class _DetailScreenState extends State<DetailScreen> {
                 style: TextStyle(color: AppColors.secondary, fontSize: 11.sp),
               ),
             )
-          else ...providerWidgets,
+          else
+            ...providerWidgets,
           if (link != null && link.startsWith('https://'))
             Align(
               alignment: Alignment.centerLeft,
