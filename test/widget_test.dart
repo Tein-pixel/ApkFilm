@@ -80,4 +80,31 @@ void main() {
     });
     expect(indoDrama.categories, contains('Indonesian Drama'));
   });
+
+  test('external subtitle metadata is preserved by catalogue serialization', () {
+    final content = MediaContent.fromJson({
+      'id': 'open-short',
+      'title': 'Open Short',
+      'type': 'movie',
+      'sources': const {},
+      'subtitles': {
+        'Indonesia': 'https://media.example/subtitles/id.vtt',
+        'English': 'https://media.example/subtitles/en.vtt',
+      },
+    });
+    expect(content.subtitles['Indonesia'], 'https://media.example/subtitles/id.vtt');
+    final restored = MediaContent.fromJson(content.toJson());
+    expect(restored.subtitles, content.subtitles);
+    final merged = content.mergeCategories(
+      MediaContent.fromJson({
+        'id': 'open-short',
+        'title': 'Open Short',
+        'type': 'movie',
+        'sources': const {},
+        'categories': ['Drama'],
+      }),
+    );
+    expect(merged.subtitles, content.subtitles);
+  });
+
 }
