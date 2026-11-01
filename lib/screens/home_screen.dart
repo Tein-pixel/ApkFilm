@@ -32,6 +32,7 @@ class _HomeScreenState extends State<HomeScreen> {
   String _selectedExploreFilter = 'All';
   Timer? _autoSlide;
   late Future<List<MediaContent>> _catalogFuture;
+  late Future<List<Map<String, dynamic>>> _providersFuture;
   int _selectedTab = 0;
   bool _dataSaver = false;
   int _heroCount = 1;
@@ -40,6 +41,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _catalogFuture = context.read<CatalogRepository>().loadCatalog();
+    _providersFuture = context.read<CatalogRepository>().getIndonesiaProviders();
     _loadSettings();
     _autoSlide = Timer.periodic(const Duration(seconds: 5), (_) async {
       if (_selectedTab != 0 || !_heroController.hasClients) return;
@@ -159,6 +161,8 @@ class _HomeScreenState extends State<HomeScreen> {
       slivers: [
         SliverToBoxAdapter(child: _topBar()),
         SliverToBoxAdapter(child: _hero(items)),
+        SliverToBoxAdapter(child: _discoveryShortcuts()),
+        SliverToBoxAdapter(child: _officialProvidersSection()),
         SliverToBoxAdapter(
           child: _sectionHeader('Continue Watching', 'Resume'),
         ),
@@ -193,6 +197,30 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
         SliverToBoxAdapter(child: _movieRow(items)),
+        for (final category in const [
+          'K-Drama',
+          'C-Drama',
+          'Thai Drama',
+          'Taiwanese Drama',
+          'Indonesian Drama',
+          'Filipino Drama',
+          'Indian Drama',
+          'Japanese Drama',
+          'Anime',
+        ])
+          if (items.any((item) => item.categories.contains(category))) ...[
+            SliverToBoxAdapter(
+              child: _sectionHeader(
+                category,
+                '${items.where((item) => item.categories.contains(category)).length} titles',
+              ),
+            ),
+            SliverToBoxAdapter(
+              child: _movieRow(
+                items.where((item) => item.categories.contains(category)).toList(),
+              ),
+            ),
+          ],
         SliverToBoxAdapter(
           child: _sectionHeader('My List', '${saved.length} saved'),
         ),
@@ -785,6 +813,121 @@ class _HomeScreenState extends State<HomeScreen> {
     ],
   );
 
+  Widget _discoveryShortcuts() => Padding(
+    padding: EdgeInsets.fromLTRB(18.w, 0, 18.w, 10.h),
+    child: SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          _shortcutChip('Movie & Series', Icons.movie_filter_outlined, 0),
+          SizedBox(width: 8.w),
+          _shortcutChip('Drama', Icons.theaters_outlined, 1),
+          SizedBox(width: 8.w),
+          _shortcutChip('Anime', Icons.animation_outlined, 2),
+        ],
+      ),
+    ),
+  );
+
+  Widget _shortcutChip(String label, IconData icon, int kind) => ActionChip(
+    avatar: Icon(icon, size: 15, color: AppColors.blue),
+    label: Text(label, style: TextStyle(fontSize: 10.sp)),
+    backgroundColor: AppColors.surface,
+    side: const BorderSide(color: AppColors.surface3),
+    onPressed: () {
+      setState(() {
+        _selectedTab = 1;
+        _selectedExploreFilter = kind == 1
+            ? 'Drama'
+            : kind == 2
+                ? 'Anime'
+                : 'All';
+      });
+    },
+  );
+
+  Widget _officialProvidersSection() => FutureBuilder<List<Map<String, dynamic>>>(
+    future: _providersFuture,
+    builder: (context, snapshot) {
+      final providers = snapshot.data ?? const <Map<String, dynamic>>[];
+      if (providers.isEmpty) return const SizedBox.shrink();
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _sectionHeader('Streaming resmi di Indonesia', '${providers.length} layanan'),
+          SizedBox(
+            height: 88.h,
+            child: ListView.separated(
+              padding: EdgeInsets.symmetric(horizontal: 18.w),
+              scrollDirection: Axis.horizontal,
+              itemCount: providers.take(14).length,
+              separatorBuilder: (_, __) => SizedBox(width: 9.w),
+              itemBuilder: (context, index) {
+                final provider = providers[index];
+                final name = provider['provider_name']?.toString() ?? 'Provider';
+                final id = (provider['provider_id'] as num?)?.toInt() ?? 0;
+                final logo = provider['logo_path']?.toString() ?? '';
+                return InkWell(
+                  borderRadius: BorderRadius.circular(13.r),
+                  onTap: id > 0 ? () => _openProviderCatalog(id, name) : null,
+                  child: Container(
+                    width: 76.w,
+                    padding: EdgeInsets.all(7.w),
+                    decoration: BoxDecoration(
+                      color: AppColors.surface,
+                      borderRadius: BorderRadius.circular(13.r),
+                      border: Border.all(color: AppColors.surface3),
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Expanded(
+                          child: logo.isEmpty
+                              ? const Icon(Icons.live_tv_outlined, color: AppColors.secondary)
+                              : ClipRRect(
+                                  borderRadius: BorderRadius.circular(9.r),
+                                  child: CachedNetworkImage(
+                                    imageUrl: 'https://image.tmdb.org/t/p/w92$logo',
+                                    fit: BoxFit.contain,
+                                    errorWidget: (_, __, ___) => const Icon(
+                                      Icons.live_tv_outlined,
+                                      color: AppColors.secondary,
+                                    ),
+                                  ),
+                                ),
+                        ),
+                        SizedBox(height: 5.h),
+                        Text(
+                          name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(fontSize: 8.sp, color: AppColors.secondary),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      );
+    },
+  );
+
+  Future<void> _openProviderCatalog(int providerId, String providerName) async {
+    final items = await context.read<CatalogRepository>().discoverByProvider(providerId);
+    if (!mounted) return;
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => _ProviderCatalogScreen(
+          providerName: providerName,
+          items: items,
+        ),
+      ),
+    );
+  }
+
   Widget _sectionHeader(String title, String trailing) => Padding(
     padding: EdgeInsets.fromLTRB(18.w, 8.h, 18.w, 12.h),
     child: Row(
@@ -889,4 +1032,49 @@ class _HomeScreenState extends State<HomeScreen> {
           builder: (_) => DetailScreen(content: item, resume: resume),
         ),
       );
+}
+
+class _ProviderCatalogScreen extends StatelessWidget {
+  const _ProviderCatalogScreen({
+    required this.providerName,
+    required this.items,
+  });
+
+  final String providerName;
+  final List<MediaContent> items;
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    backgroundColor: AppColors.background,
+    appBar: AppBar(
+      title: Text(providerName),
+      backgroundColor: AppColors.background,
+    ),
+    body: items.isEmpty
+        ? const Center(
+            child: Text(
+              'Belum ada judul yang terdaftar untuk layanan ini di Indonesia.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: AppColors.secondary),
+            ),
+          )
+        : GridView.builder(
+            padding: EdgeInsets.all(16.w),
+            itemCount: items.length,
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 3,
+              childAspectRatio: 115 / 170,
+              crossAxisSpacing: 10.w,
+              mainAxisSpacing: 12.h,
+            ),
+            itemBuilder: (context, index) => MovieCard(
+              content: items[index],
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => DetailScreen(content: items[index]),
+                ),
+              ),
+            ),
+          ),
+  );
 }
