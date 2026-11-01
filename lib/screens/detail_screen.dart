@@ -27,6 +27,9 @@ class _DetailScreenState extends State<DetailScreen> {
   bool _starting = false;
   Future<Map<String, dynamic>?>? _providersFuture;
   Future<Map<String, dynamic>?>? _detailsFuture;
+  Future<Map<String, dynamic>?>? _seasonFuture;
+  int? _selectedSeasonNumber;
+  int? _selectedEpisodeNumber;
 
   @override
   void initState() {
@@ -36,6 +39,7 @@ class _DetailScreenState extends State<DetailScreen> {
       final repository = context.read<CatalogRepository>();
       _providersFuture = repository.getWatchProviders(widget.content);
       _detailsFuture = repository.getTitleDetails(widget.content);
+      if (widget.content.type == 'tv') _initializeFirstSeason();
     }
     const serverIds = ['server1', 'server2', 'server3', 'server4', 'server5'];
     final readyServers = serverIds.where(_hasUsableSource).toList();
@@ -308,6 +312,10 @@ class _DetailScreenState extends State<DetailScreen> {
                   ),
                   SizedBox(height: 18.h),
                   if (widget.content.isTmdb) _tmdbDetailsSection(),
+                  if (widget.content.isTmdb && widget.content.type == 'tv') ...[
+                    SizedBox(height: 18.h),
+                    _seriesEpisodesSection(),
+                  ],
                   if (widget.content.isTmdb) SizedBox(height: 18.h),
                   Wrap(
                     spacing: 7.w,
@@ -463,6 +471,269 @@ class _DetailScreenState extends State<DetailScreen> {
     );
   }
 
+
+  Future<void> _initializeFirstSeason() async {
+    final details = await _detailsFuture;
+    if (!mounted || details == null) return;
+    final rawSeasons = details['seasons'];
+    if (rawSeasons is! List) return;
+    final seasons = rawSeasons
+        .whereType<Map>()
+        .map((row) => Map<String, dynamic>.from(row))
+        .where((row) => (row['season_number'] as num?)?.toInt() != null &&
+            ((row['season_number'] as num).toInt() > 0))
+        .toList()
+      ..sort((a, b) =>
+          (a['season_number'] as num).toInt().compareTo(
+            (b['season_number'] as num).toInt(),
+          ));
+    if (seasons.isEmpty) return;
+    final first = (seasons.first['season_number'] as num).toInt();
+    final repository = context.read<CatalogRepository>();
+    if (!mounted) return;
+    setState(() {
+      _selectedSeasonNumber = first;
+      _seasonFuture = repository.getTvSeasonDetails(widget.content, first);
+    });
+  }
+
+  void _selectSeason(int seasonNumber) {
+    if (_selectedSeasonNumber == seasonNumber) return;
+    setState(() {
+      _selectedSeasonNumber = seasonNumber;
+      _selectedEpisodeNumber = null;
+      _seasonFuture = context
+          .read<CatalogRepository>()
+          .getTvSeasonDetails(widget.content, seasonNumber);
+    });
+  }
+
+  Widget _seriesEpisodesSection() => FutureBuilder<Map<String, dynamic>?>(
+    future: _detailsFuture,
+    builder: (context, snapshot) {
+      final details = snapshot.data;
+      final rawSeasons = details?['seasons'];
+      if (rawSeasons is! List) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const LinearProgressIndicator(
+            minHeight: 2,
+            color: AppColors.red,
+          );
+        }
+        return const SizedBox.shrink();
+      }
+      final seasons = rawSeasons
+          .whereType<Map>()
+          .map((row) => Map<String, dynamic>.from(row))
+          .where((row) => (row['season_number'] as num?)?.toInt() != null &&
+              ((row['season_number'] as num).toInt() > 0))
+          .toList()
+        ..sort((a, b) =>
+            (a['season_number'] as num).toInt().compareTo(
+              (b['season_number'] as num).toInt(),
+            ));
+      if (seasons.isEmpty) return const SizedBox.shrink();
+      final selected = _selectedSeasonNumber ??
+          (seasons.first['season_number'] as num).toInt();
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(
+                'EPISODES',
+                style: TextStyle(
+                  fontSize: 11.sp,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: .7,
+                ),
+              ),
+              const Spacer(),
+              Text(
+                '${details?['number_of_episodes'] ?? 0} total',
+                style: TextStyle(fontSize: 9.sp, color: AppColors.secondary),
+              ),
+            ],
+          ),
+          SizedBox(height: 10.h),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: seasons.map((season) {
+                final number = (season['season_number'] as num).toInt();
+                final name = season['name']?.toString().trim();
+                final label = name?.isNotEmpty == true
+                    ? name!
+                    : 'Season $number';
+                final active = selected == number;
+                return Padding(
+                  padding: EdgeInsets.only(right: 8.w),
+                  child: ChoiceChip(
+                    label: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
+                    selected: active,
+                    onSelected: (_) => _selectSeason(number),
+                    selectedColor: AppColors.blue.withValues(alpha: .18),
+                    side: BorderSide(
+                      color: active ? AppColors.blue : AppColors.surface3,
+                    ),
+                    labelStyle: TextStyle(
+                      color: active ? Colors.white : AppColors.secondary,
+                      fontSize: 10.sp,
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+          SizedBox(height: 12.h),
+          if (_seasonFuture == null)
+            const LinearProgressIndicator(minHeight: 2, color: AppColors.red)
+          else
+            FutureBuilder<Map<String, dynamic>?>(
+              future: _seasonFuture,
+              builder: (context, seasonSnapshot) {
+                if (seasonSnapshot.connectionState == ConnectionState.waiting) {
+                  return const LinearProgressIndicator(
+                    minHeight: 2,
+                    color: AppColors.red,
+                  );
+                }
+                final episodeRows = seasonSnapshot.data?['episodes'];
+                final episodes = episodeRows is List
+                    ? episodeRows.whereType<Map>().toList(growable: false)
+                    : const <Map>[];
+                if (episodes.isEmpty) {
+                  return Text(
+                    'Daftar episode untuk season ini belum tersedia.',
+                    style: TextStyle(color: AppColors.secondary, fontSize: 10.sp),
+                  );
+                }
+                return Column(
+                  children: [
+                    for (final episode in episodes)
+                      _episodeTile(episode),
+                    SizedBox(height: 8.h),
+                    OutlinedButton.icon(
+                      onPressed: _openEpisodeProviderAvailability,
+                      icon: const Icon(Icons.open_in_new_rounded, size: 16),
+                      label: const Text('Cari layanan menonton resmi'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColors.blue,
+                        side: const BorderSide(color: AppColors.surface3),
+                        minimumSize: Size(double.infinity, 42.h),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+        ],
+      );
+    },
+  );
+
+  Widget _episodeTile(Map episode) {
+    final number = (episode['episode_number'] as num?)?.toInt() ?? 0;
+    final title = episode['name']?.toString().trim().isNotEmpty == true
+        ? episode['name'].toString()
+        : 'Episode $number';
+    final runtime = (episode['runtime'] as num?)?.toInt() ?? 0;
+    final overview = episode['overview']?.toString() ?? '';
+    final stillPath = episode['still_path']?.toString() ?? '';
+    final selected = _selectedEpisodeNumber == number;
+    final stillUrl = stillPath.isEmpty
+        ? null
+        : 'https://image.tmdb.org/t/p/w300$stillPath';
+    return InkWell(
+      borderRadius: BorderRadius.circular(12.r),
+      onTap: () => setState(() => _selectedEpisodeNumber = number),
+      child: Container(
+        margin: EdgeInsets.only(bottom: 9.h),
+        padding: EdgeInsets.all(9.w),
+        decoration: BoxDecoration(
+          color: selected
+              ? AppColors.blue.withValues(alpha: .10)
+              : AppColors.surface,
+          borderRadius: BorderRadius.circular(12.r),
+          border: Border.all(
+            color: selected ? AppColors.blue : AppColors.surface3,
+          ),
+        ),
+        child: Row(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8.r),
+              child: SizedBox(
+                width: 104.w,
+                height: 65.h,
+                child: stillUrl == null
+                    ? const ColoredBox(
+                        color: AppColors.surface2,
+                        child: Icon(Icons.movie_outlined, color: AppColors.secondary),
+                      )
+                    : CachedNetworkImage(
+                        imageUrl: stillUrl,
+                        fit: BoxFit.cover,
+                        errorWidget: (_, __, ___) => const ColoredBox(
+                          color: AppColors.surface2,
+                          child: Icon(Icons.movie_outlined, color: AppColors.secondary),
+                        ),
+                      ),
+              ),
+            ),
+            SizedBox(width: 10.w),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'EPISODE ${number.toString().padLeft(2, '0')}',
+                    style: TextStyle(
+                      color: AppColors.blue,
+                      fontSize: 8.sp,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  SizedBox(height: 3.h),
+                  Text(
+                    title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 11.sp, fontWeight: FontWeight.w700),
+                  ),
+                  if (runtime > 0)
+                    Text(
+                      '$runtime min',
+                      style: TextStyle(fontSize: 8.sp, color: AppColors.secondary),
+                    ),
+                  if (overview.isNotEmpty)
+                    Text(
+                      overview,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontSize: 8.sp, color: AppColors.secondary),
+                    ),
+                ],
+              ),
+            ),
+            Icon(
+              selected ? Icons.check_circle_rounded : Icons.chevron_right_rounded,
+              color: selected ? AppColors.blue : AppColors.secondary,
+              size: 20,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openEpisodeProviderAvailability() async {
+    final data = await _providersFuture;
+    final link = data?['link']?.toString();
+    await _openProvider(
+      link?.isNotEmpty == true ? link : 'https://www.justwatch.com/id',
+    );
+  }
 
   Widget _tmdbDetailsSection() => FutureBuilder<Map<String, dynamic>?>(
     future: _detailsFuture,
