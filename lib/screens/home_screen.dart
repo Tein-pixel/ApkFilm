@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -365,6 +366,9 @@ class _HomeScreenState extends State<HomeScreen> {
           itemCount: items.length,
           itemBuilder: (context, index) {
             final item = items[index];
+            final imageUrl = item.backdrop?.trim().isNotEmpty == true
+                ? item.backdrop!.trim()
+                : item.poster?.trim() ?? '';
             return GestureDetector(
               onTap: () => _openDetail(item),
               child: Container(
@@ -391,6 +395,48 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 child: Stack(
                   children: [
+                    if (imageUrl.isNotEmpty)
+                      Positioned.fill(
+                        child: CachedNetworkImage(
+                          imageUrl: imageUrl,
+                          fit: BoxFit.cover,
+                          memCacheHeight: 900,
+                          placeholder: (_, __) => const SizedBox.expand(),
+                          errorWidget: (_, __, ___) => const SizedBox.expand(),
+                        ),
+                      ),
+                    const Positioned.fill(
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.centerRight,
+                            end: Alignment.centerLeft,
+                            colors: [
+                              Colors.black12,
+                              Color(0xAA07090D),
+                              Color(0xF507090D),
+                            ],
+                            stops: [0, .42, 1],
+                          ),
+                        ),
+                      ),
+                    ),
+                    const Positioned.fill(
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Colors.black26,
+                              Colors.transparent,
+                              Colors.black87,
+                            ],
+                            stops: [0, .4, 1],
+                          ),
+                        ),
+                      ),
+                    ),
                     Positioned(
                       right: -28.w,
                       top: -15.h,
