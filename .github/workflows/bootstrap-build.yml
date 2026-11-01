@@ -2,7 +2,7 @@ name: CineWave Android v7 release build
 
 on:
   push:
-    branches: [main, tmdb-attribution-audit]
+    branches: [main, tmdb-attribution-audit, tmdb-performance]
   workflow_dispatch:
 
 permissions:

@@ -91,12 +91,42 @@ class MediaContent {
     };
     final categories = <String>{};
     final rawGenres = json['genre_ids'];
+    final genreIds = <int>{};
     if (rawGenres is List) {
       for (final genre in rawGenres) {
         final id = genre is num ? genre.toInt() : int.tryParse('$genre');
-        final name = id == null ? null : genreNames[id];
-        if (name != null) categories.add(name);
+        if (id != null) {
+          genreIds.add(id);
+          final name = genreNames[id];
+          if (name != null) categories.add(name);
+        }
       }
+    }
+
+    final originalLanguage = json['original_language']?.toString() ?? '';
+    final rawCountries = json['origin_country'];
+    final countries = rawCountries is List
+        ? rawCountries.map((value) => value.toString()).toSet()
+        : <String>{};
+    const regionalDramaLabels = <String, String>{
+      'KR': 'K-Drama',
+      'CN': 'C-Drama',
+      'TH': 'Thai Drama',
+      'TW': 'Taiwanese Drama',
+      'ID': 'Indonesian Drama',
+      'PH': 'Filipino Drama',
+      'IN': 'Indian Drama',
+      'JP': 'Japanese Drama',
+    };
+    if (mediaType == 'tv' && genreIds.contains(18)) {
+      for (final country in countries) {
+        final label = regionalDramaLabels[country];
+        if (label != null) categories.add(label);
+      }
+    }
+    if (genreIds.contains(16) &&
+        (originalLanguage == 'ja' || countries.contains('JP'))) {
+      categories.add('Anime');
     }
     if (categoryLabel != null && categoryLabel.isNotEmpty) {
       categories.add(categoryLabel);

@@ -739,7 +739,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   Icons.play_arrow_rounded,
                                   size: 18,
                                 ),
-                                label: const Text('Watch now'),
+                                label: Text(item.isTmdb ? 'View details' : 'Watch now'),
                                 style: FilledButton.styleFrom(
                                   backgroundColor: AppColors.red,
                                   foregroundColor: Colors.white,

@@ -82,3 +82,11 @@ The release workflow validates the bundled JSON catalogue and HTTPS URL declarat
 - TMDB's current developer FAQ requires its approved logo, the exact non-endorsement notice, and placement in an About/Credits section. CineWave now shows the TMDB logo and notice in Profile/About.
 - The TMDB watch-provider endpoint is powered by JustWatch and explicitly requires JustWatch attribution. CineWave displays “Availability data provided by JustWatch” beside the Indonesia provider panel and links to JustWatch Indonesia.
 - TMDB search/discover results are metadata. They do not grant video playback rights and do not expose a stream URL.
+
+
+### Discovery coverage and cache
+
+- Home discovery includes global trending/popular titles plus country-specific drama rows for Korea, China, Thailand, Taiwan, Indonesia, the Philippines, India and Japan.
+- Multi-search is paginated and the Explore screen offers “Load more results” for subsequent TMDB pages.
+- Search result classification uses TMDB genre IDs, original language and origin-country fields to tag anime and regional drama consistently.
+- The last successful home catalogue is cached locally for 12 hours; manual search remains live. When refresh fails, the app falls back to the cached catalogue and then to bundled open-movie entries.

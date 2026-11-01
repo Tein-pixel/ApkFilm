@@ -9,16 +9,36 @@ class CatalogRepository {
 
   final TmdbService _tmdb;
   static const _cacheKey = 'cinewave_tmdb_catalog_v1';
+  static const _cacheUpdatedKey = 'cinewave_tmdb_catalog_updated_v1';
+  static const _cacheTtl = Duration(hours: 12);
 
   Future<List<MediaContent>> loadCatalog() async {
     final local = await _loadLocalCatalog();
     if (!_tmdb.isConfigured) return local;
 
     final cached = await _loadCachedCatalog();
+    final prefs = await SharedPreferences.getInstance();
+    final lastUpdated = prefs.getInt(_cacheUpdatedKey) ?? 0;
+    final cacheAge = DateTime.now().millisecondsSinceEpoch - lastUpdated;
+    final cacheIsFresh = cached.isNotEmpty &&
+        lastUpdated > 0 &&
+        cacheAge >= 0 &&
+        cacheAge < _cacheTtl.inMilliseconds;
+    if (cacheIsFresh) return _merge(cached, local);
+
     final remote = await _tmdb.loadHomeCatalog();
     if (remote.isNotEmpty) {
-      await _saveCachedCatalog(remote);
-      return _merge(remote, local);
+      final refreshed = _merge(remote, cached);
+      await _saveCachedCatalog(refreshed);
+      try {
+        await prefs.setInt(
+          _cacheUpdatedKey,
+          DateTime.now().millisecondsSinceEpoch,
+        );
+      } catch (_) {
+        // The catalogue remains usable even if its refresh timestamp cannot be saved.
+      }
+      return _merge(refreshed, local);
     }
     return _merge(cached.isNotEmpty ? cached : local, local);
   }

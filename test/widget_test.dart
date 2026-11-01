@@ -44,4 +44,40 @@ void main() {
     expect(series.categories, contains('K-Drama'));
     expect(series.sources, isEmpty);
   });
+
+  test('TMDB search results classify anime and regional drama using metadata', () {
+    final anime = MediaContent.fromTmdb({
+      'id': 10,
+      'media_type': 'tv',
+      'name': 'Example Anime',
+      'first_air_date': '2023-01-01',
+      'original_language': 'ja',
+      'origin_country': ['JP'],
+      'genre_ids': [16],
+    });
+    expect(anime.categories, contains('Anime'));
+
+    final koreanDrama = MediaContent.fromTmdb({
+      'id': 20,
+      'media_type': 'tv',
+      'name': 'Example Korean Drama',
+      'first_air_date': '2023-01-01',
+      'original_language': 'ko',
+      'origin_country': ['KR'],
+      'genre_ids': [18],
+    });
+    expect(koreanDrama.categories, contains('Drama'));
+    expect(koreanDrama.categories, contains('K-Drama'));
+
+    final indoDrama = MediaContent.fromTmdb({
+      'id': 30,
+      'media_type': 'tv',
+      'name': 'Example Indonesian Drama',
+      'first_air_date': '2023-01-01',
+      'original_language': 'id',
+      'origin_country': ['ID'],
+      'genre_ids': [18],
+    });
+    expect(indoDrama.categories, contains('Indonesian Drama'));
+  });
 }
