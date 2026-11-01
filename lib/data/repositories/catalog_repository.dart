@@ -71,6 +71,26 @@ class CatalogRepository {
   Future<List<MediaContent>> discoverByProvider(int providerId) =>
       _tmdb.discoverByProvider(providerId);
 
+  Future<Map<String, dynamic>?> getEpisodePlaybackConfig({
+    required int seriesId,
+    required int seasonNumber,
+    required int episodeNumber,
+  }) async {
+    if (seriesId <= 0 || seasonNumber <= 0 || episodeNumber <= 0) return null;
+    try {
+      final raw = await rootBundle.loadString(
+        'assets/database/episode_sources.json',
+      );
+      final decoded = jsonDecode(raw);
+      if (decoded is! Map || decoded['episodes'] is! Map) return null;
+      final key = '$seriesId:$seasonNumber:$episodeNumber';
+      final entry = (decoded['episodes'] as Map)[key];
+      return entry is Map ? Map<String, dynamic>.from(entry) : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
   Future<List<MediaContent>> _loadLocalCatalog() async {
     final raw = await rootBundle.loadString('assets/database/all_content.json');
     final decoded = jsonDecode(raw);
