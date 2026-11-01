@@ -203,4 +203,96 @@ class TmdbService {
       return null;
     }
   }
+
+  /// Loads one season's episode metadata. TMDB provides metadata only; it
+  /// does not provide episode video streams.
+  Future<Map<String, dynamic>?> getTvSeasonDetails(
+    MediaContent content,
+    int seasonNumber,
+  ) async {
+    if (!isConfigured || content.type != 'tv' || content.tmdbId == null ||
+        seasonNumber < 0) {
+      return null;
+    }
+    try {
+      final response = await _dio.get<Map<String, dynamic>>(
+        '/tv/${content.tmdbId}/season/$seasonNumber',
+        queryParameters: {..._authParams, 'language': 'id-ID'},
+      );
+      return response.data;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Returns official Indonesian streaming providers listed by TMDB.
+  /// Provider listings are availability data and never represent stream URLs.
+  Future<List<Map<String, dynamic>>> getIndonesiaProviders() async {
+    if (!isConfigured) return const [];
+    try {
+      final responses = await Future.wait([
+        _dio.get<Map<String, dynamic>>(
+          '/watch/providers/movie',
+          queryParameters: {..._authParams, 'watch_region': 'ID', 'language': 'id-ID'},
+        ),
+        _dio.get<Map<String, dynamic>>(
+          '/watch/providers/tv',
+          queryParameters: {..._authParams, 'watch_region': 'ID', 'language': 'id-ID'},
+        ),
+      ]);
+      final byId = <int, Map<String, dynamic>>{};
+      for (final response in responses) {
+        final rows = response.data?['results'];
+        if (rows is! List) continue;
+        for (final row in rows.whereType<Map>()) {
+          final provider = Map<String, dynamic>.from(row);
+          final id = (provider['provider_id'] as num?)?.toInt();
+          if (id != null && id > 0) byId.putIfAbsent(id, () => provider);
+        }
+      }
+      final result = byId.values.toList();
+      result.sort((a, b) =>
+          ((a['display_priority'] as num?)?.toInt() ?? 999)
+              .compareTo((b['display_priority'] as num?)?.toInt() ?? 999));
+      return result;
+    } catch (_) {
+      return const [];
+    }
+  }
+
+  /// Finds titles available from an official provider in Indonesia.
+  Future<List<MediaContent>> discoverByProvider(int providerId) async {
+    if (!isConfigured || providerId <= 0) return const [];
+    final groups = await Future.wait([
+      _fetchList(
+        '/discover/movie',
+        mediaType: 'movie',
+        category: 'Movies',
+        extra: {
+          'watch_region': 'ID',
+          'with_watch_providers': providerId,
+          'sort_by': 'popularity.desc',
+        },
+      ),
+      _fetchList(
+        '/discover/tv',
+        mediaType: 'tv',
+        category: 'Series',
+        extra: {
+          'watch_region': 'ID',
+          'with_watch_providers': providerId,
+          'sort_by': 'popularity.desc',
+        },
+      ),
+    ]);
+    final merged = <String, MediaContent>{};
+    for (final group in groups) {
+      for (final item in group) {
+        final old = merged[item.id];
+        merged[item.id] = old == null ? item : old.mergeCategories(item);
+      }
+    }
+    return merged.values.toList(growable: false);
+  }
+
 }
