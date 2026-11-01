@@ -1,0 +1,84 @@
+{
+  "multi_server_enabled": true,
+  "auto_failover": true,
+  "quality_downgrade_enabled": true,
+  "buffer_timeout_ms": 2000,
+  "probe_timeout_ms": 2200,
+  "servers": [
+    {
+      "id": "server1",
+      "name": "Server 1 • Primary Demo Origin",
+      "type": "mixed_demo",
+      "priority": 1,
+      "region": "Public test origin",
+      "status": "demo",
+      "quality_mode": "adaptive_master_playlist",
+      "qualities": {
+        "480p": "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
+        "720p": "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
+        "1080p": "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
+        "4K": ""
+      }
+    },
+    {
+      "id": "server2",
+      "name": "Server 2 • Backup Demo Origin",
+      "type": "mixed_demo",
+      "priority": 2,
+      "region": "Google public sample storage",
+      "status": "demo",
+      "quality_mode": "fixed_source",
+      "qualities": {
+        "480p": "",
+        "720p": "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+        "1080p": "",
+        "4K": ""
+      }
+    },
+    {
+      "id": "server3",
+      "name": "Server 3 • Your BunnyCDN / HLS",
+      "type": "bunny_stream",
+      "priority": 3,
+      "region": "Set your own licensed origin",
+      "status": "needs_configuration",
+      "quality_mode": "adaptive_master_playlist",
+      "qualities": {
+        "480p": "",
+        "720p": "",
+        "1080p": "",
+        "4K": ""
+      }
+    },
+    {
+      "id": "server4",
+      "name": "Server 4 • Your Cloudflare R2 / B2",
+      "type": "cloudflare_r2",
+      "priority": 4,
+      "region": "Set your own licensed origin",
+      "status": "needs_configuration",
+      "quality_mode": "adaptive_master_playlist",
+      "qualities": {
+        "480p": "",
+        "720p": "",
+        "1080p": "",
+        "4K": ""
+      }
+    },
+    {
+      "id": "server5",
+      "name": "Server 5 • Your Emergency Mirror",
+      "type": "https_origin",
+      "priority": 5,
+      "region": "Set your own licensed origin",
+      "status": "needs_configuration",
+      "quality_mode": "adaptive_master_playlist",
+      "qualities": {
+        "480p": "",
+        "720p": "",
+        "1080p": "",
+        "4K": ""
+      }
+    }
+  ]
+}

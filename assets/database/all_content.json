@@ -1,0 +1,269 @@
+[
+  {
+    "id": "bbb-2008",
+    "title": "Big Buck Bunny",
+    "type": "movie",
+    "categories": [
+      "Open Movie",
+      "Animation",
+      "Family"
+    ],
+    "year": 2008,
+    "rating": 8.0,
+    "age": "SU",
+    "duration": "10m",
+    "status": "Complete",
+    "poster": null,
+    "backdrop": null,
+    "synopsis": "A gentle animated short from the Blender Foundation. Included as a public playback demonstration; attribution is provided in the Credits screen.",
+    "license": "Creative Commons Attribution 3.0 (CC BY 3.0)",
+    "attribution": "Big Buck Bunny © 2008 Blender Foundation / www.bigbuckbunny.org. Licensed under CC BY 3.0.",
+    "sources": {
+      "server1": {
+        "quality_mode": "adaptive_master_playlist",
+        "480p": "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
+        "720p": "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
+        "1080p": "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
+        "4K": ""
+      },
+      "server2": {
+        "quality_mode": "fixed_source",
+        "480p": "",
+        "720p": "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+        "1080p": "",
+        "4K": ""
+      },
+      "server3": {
+        "480p": "",
+        "720p": "",
+        "1080p": "",
+        "4K": ""
+      },
+      "server4": {
+        "480p": "",
+        "720p": "",
+        "1080p": "",
+        "4K": ""
+      },
+      "server5": {
+        "480p": "",
+        "720p": "",
+        "1080p": "",
+        "4K": ""
+      }
+    }
+  },
+  {
+    "id": "tos-2012",
+    "title": "Tears of Steel",
+    "type": "movie",
+    "categories": [
+      "Open Movie",
+      "Sci-Fi",
+      "VFX"
+    ],
+    "year": 2012,
+    "rating": 7.6,
+    "age": "13+",
+    "duration": "12m",
+    "status": "Complete",
+    "poster": null,
+    "backdrop": null,
+    "synopsis": "A science-fiction short film produced by the Blender Institute. Streaming is provided by a public HLS demo origin; use the official Blender site for licensing and credits.",
+    "license": "Creative Commons Attribution 3.0 (CC BY 3.0)",
+    "attribution": "Tears of Steel © Blender Foundation. Licensed under CC BY 3.0.",
+    "sources": {
+      "server1": {
+        "quality_mode": "adaptive_master_playlist",
+        "480p": "https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8",
+        "720p": "https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8",
+        "1080p": "https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8",
+        "4K": ""
+      },
+      "server2": {
+        "quality_mode": "fixed_source",
+        "480p": "",
+        "720p": "https://video.blender.org/static/webseed/8533ea43-4271-4a57-9694-e9d0b35e1aa1-720.mp4",
+        "1080p": "",
+        "4K": ""
+      },
+      "server3": {
+        "480p": "",
+        "720p": "",
+        "1080p": "",
+        "4K": ""
+      },
+      "server4": {
+        "480p": "",
+        "720p": "",
+        "1080p": "",
+        "4K": ""
+      },
+      "server5": {
+        "480p": "",
+        "720p": "",
+        "1080p": "",
+        "4K": ""
+      }
+    }
+  },
+  {
+    "id": "sintel-2010",
+    "title": "Sintel",
+    "type": "movie",
+    "categories": [
+      "Open Movie",
+      "Fantasy",
+      "Adventure"
+    ],
+    "year": 2010,
+    "rating": 7.8,
+    "age": "13+",
+    "duration": "15m",
+    "status": "Complete",
+    "poster": null,
+    "backdrop": null,
+    "synopsis": "A fantasy short film from the Blender Durian Open Movie project. The sample stream is a 720p public video endpoint.",
+    "license": "Creative Commons Attribution (see official project terms)",
+    "attribution": "Sintel © Blender Foundation / Durian Open Movie Project. Attribution required.",
+    "sources": {
+      "server1": {
+        "quality_mode": "fixed_source",
+        "480p": "",
+        "720p": "https://video.blender.org/static/webseed/0eb052d0-fd51-43e6-aa33-ecdbf77a5d40-720.mp4",
+        "1080p": "",
+        "4K": ""
+      },
+      "server2": {
+        "480p": "",
+        "720p": "",
+        "1080p": "",
+        "4K": ""
+      },
+      "server3": {
+        "480p": "",
+        "720p": "",
+        "1080p": "",
+        "4K": ""
+      },
+      "server4": {
+        "480p": "",
+        "720p": "",
+        "1080p": "",
+        "4K": ""
+      },
+      "server5": {
+        "480p": "",
+        "720p": "",
+        "1080p": "",
+        "4K": ""
+      }
+    }
+  },
+  {
+    "id": "spring-2019",
+    "title": "Spring",
+    "type": "movie",
+    "categories": [
+      "Open Movie",
+      "Fantasy",
+      "Animation"
+    ],
+    "year": 2019,
+    "rating": 7.7,
+    "age": "SU",
+    "duration": "7m",
+    "status": "Complete",
+    "poster": null,
+    "backdrop": null,
+    "synopsis": "An animated short about a shepherd girl and her dog, from Blender's open-movie collection.",
+    "license": "Check the official Blender Studio license for redistribution terms.",
+    "attribution": "Spring © Blender Foundation / Blender Studio. Attribution required where applicable.",
+    "sources": {
+      "server1": {
+        "quality_mode": "fixed_source",
+        "480p": "",
+        "720p": "https://video.blender.org/static/webseed/3d95fb3d-c866-42c8-9db1-fe82f48ccb95-720.mp4",
+        "1080p": "",
+        "4K": ""
+      },
+      "server2": {
+        "480p": "",
+        "720p": "",
+        "1080p": "",
+        "4K": ""
+      },
+      "server3": {
+        "480p": "",
+        "720p": "",
+        "1080p": "",
+        "4K": ""
+      },
+      "server4": {
+        "480p": "",
+        "720p": "",
+        "1080p": "",
+        "4K": ""
+      },
+      "server5": {
+        "480p": "",
+        "720p": "",
+        "1080p": "",
+        "4K": ""
+      }
+    }
+  },
+  {
+    "id": "sprite-fright-2021",
+    "title": "Sprite Fright",
+    "type": "movie",
+    "categories": [
+      "Open Movie",
+      "Comedy",
+      "Horror"
+    ],
+    "year": 2021,
+    "rating": 7.5,
+    "age": "13+",
+    "duration": "10m",
+    "status": "Complete",
+    "poster": null,
+    "backdrop": null,
+    "synopsis": "A Blender Studio open movie short. The sample endpoint supplied here is a 720p public stream.",
+    "license": "Check the official Blender Studio license for redistribution terms.",
+    "attribution": "Sprite Fright © Blender Studio. Attribution required where applicable.",
+    "sources": {
+      "server1": {
+        "quality_mode": "fixed_source",
+        "480p": "",
+        "720p": "https://video.blender.org/download/videos/a69d68a5-a0e0-4a80-9d66-49f093c97aaf-720.mp4",
+        "1080p": "",
+        "4K": ""
+      },
+      "server2": {
+        "480p": "",
+        "720p": "",
+        "1080p": "",
+        "4K": ""
+      },
+      "server3": {
+        "480p": "",
+        "720p": "",
+        "1080p": "",
+        "4K": ""
+      },
+      "server4": {
+        "480p": "",
+        "720p": "",
+        "1080p": "",
+        "4K": ""
+      },
+      "server5": {
+        "480p": "",
+        "720p": "",
+        "1080p": "",
+        "4K": ""
+      }
+    }
+  }
+]

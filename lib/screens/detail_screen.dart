@@ -1,0 +1,505 @@
+import 'dart:ui';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../core/app_theme.dart';
+import '../core/server_manager.dart';
+import '../data/models/media_content.dart';
+import '../features/library/library_cubit.dart';
+import 'player_screen.dart';
+
+class DetailScreen extends StatefulWidget {
+  const DetailScreen({super.key, required this.content, this.resume = false});
+  final MediaContent content;
+  final bool resume;
+  @override
+  State<DetailScreen> createState() => _DetailScreenState();
+}
+
+class _DetailScreenState extends State<DetailScreen> {
+  String _quality = '1080p';
+  String? _serverId;
+  bool _starting = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _setSuggestedQuality();
+    _serverId = widget.content.sources.keys.isEmpty
+        ? null
+        : widget.content.sources.keys.first;
+  }
+
+  Future<void> _setSuggestedQuality() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final saver = prefs.getBool('data_saver') ?? false;
+      final result = await Connectivity().checkConnectivity();
+      final suggested = saver
+          ? '480p'
+          : result.contains(ConnectivityResult.wifi)
+          ? '1080p'
+          : result.contains(ConnectivityResult.mobile)
+          ? '720p'
+          : '480p';
+      if (mounted) setState(() => _quality = suggested);
+    } catch (_) {
+      if (mounted) setState(() => _quality = '480p');
+    }
+  }
+
+  Future<void> _watch() async {
+    if (_starting) return;
+    setState(() => _starting = true);
+    final manager = context.read<ServerManager>();
+    try {
+      final source = await manager.getBestSource(
+        widget.content.id,
+        _quality,
+        preferredServer: _serverId,
+        content: widget.content,
+      );
+      if (!mounted) return;
+      if (source == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Tidak ada sumber yang dapat dijangkau. Periksa internet atau konfigurasi server.',
+            ),
+          ),
+        );
+        return;
+      }
+      final savedSeconds =
+          context.read<LibraryCubit>().progress[widget.content.id] ?? 0;
+      await Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => PlayerScreen(
+            content: widget.content,
+            initialSource: source,
+            preferredQuality: _quality,
+            initialPosition: widget.resume
+                ? Duration(seconds: savedSeconds)
+                : Duration.zero,
+          ),
+        ),
+      );
+    } catch (error) {
+      if (mounted)
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal menyiapkan stream: $error')),
+        );
+    } finally {
+      if (mounted) setState(() => _starting = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final library = context.watch<LibraryCubit>();
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            expandedHeight: 270.h,
+            pinned: true,
+            backgroundColor: AppColors.background,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back_rounded),
+              onPressed: () => Navigator.pop(context),
+            ),
+            flexibleSpace: FlexibleSpaceBar(
+              background: Stack(
+                fit: StackFit.expand,
+                children: [
+                  Container(
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Color(0xFF1A2E4A),
+                          Color(0xFF50171E),
+                          Colors.black,
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                    ),
+                  ),
+                  Positioned.fill(
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
+                      child: Container(
+                        color: Colors.black.withValues(alpha: .22),
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    right: -20.w,
+                    bottom: 8.h,
+                    child: Icon(
+                      Icons.movie_creation_outlined,
+                      size: 240.w,
+                      color: Colors.white.withValues(alpha: .08),
+                    ),
+                  ),
+                  Positioned(
+                    left: 20.w,
+                    right: 20.w,
+                    bottom: 22.h,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Hero(
+                          tag: 'poster-${widget.content.id}',
+                          child: Container(
+                            width: 100.w,
+                            height: 150.h,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(12.r),
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFF30435E), Color(0xFF792A32)],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              boxShadow: const [
+                                BoxShadow(
+                                  color: Colors.black54,
+                                  blurRadius: 18,
+                                ),
+                              ],
+                            ),
+                            child: const Icon(
+                              Icons.movie_creation_outlined,
+                              size: 42,
+                              color: Colors.white70,
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: 15.w),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                widget.content.title,
+                                style: TextStyle(
+                                  fontSize: 21.sp,
+                                  fontWeight: FontWeight.w800,
+                                  height: 1.12,
+                                ),
+                              ),
+                              SizedBox(height: 7.h),
+                              Text(
+                                '${widget.content.year} • ${widget.content.age} • ${widget.content.duration}',
+                                style: TextStyle(
+                                  color: AppColors.secondary,
+                                  fontSize: 12.sp,
+                                ),
+                              ),
+                              SizedBox(height: 8.h),
+                              Row(
+                                children: [
+                                  const Icon(
+                                    Icons.star_rounded,
+                                    color: AppColors.gold,
+                                    size: 16,
+                                  ),
+                                  SizedBox(width: 4.w),
+                                  Text(
+                                    widget.content.rating.toStringAsFixed(1),
+                                    style: const TextStyle(
+                                      color: AppColors.gold,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                  SizedBox(width: 9.w),
+                                  const Icon(
+                                    Icons.high_quality_rounded,
+                                    color: AppColors.green,
+                                    size: 15,
+                                  ),
+                                  SizedBox(width: 3.w),
+                                  const Text(
+                                    'OPEN CONTENT',
+                                    style: TextStyle(
+                                      color: AppColors.green,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(18.w, 18.h, 18.w, 30.h),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    widget.content.synopsis,
+                    style: TextStyle(
+                      fontSize: 12.sp,
+                      color: AppColors.secondary,
+                      height: 1.55,
+                    ),
+                  ),
+                  SizedBox(height: 18.h),
+                  Wrap(
+                    spacing: 7.w,
+                    runSpacing: 7.h,
+                    children: widget.content.categories
+                        .map((c) => _tag(c))
+                        .toList(),
+                  ),
+                  SizedBox(height: 22.h),
+                  Row(
+                    children: [
+                      Text(
+                        'STREAM SERVER',
+                        style: TextStyle(
+                          fontSize: 11.sp,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: .6,
+                        ),
+                      ),
+                      const Spacer(),
+                      Text(
+                        '${_configuredSourceCount}/5 sources',
+                        style: const TextStyle(
+                          color: AppColors.blue,
+                          fontSize: 10,
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 10.h),
+                  ..._serverList(),
+                  SizedBox(height: 18.h),
+                  Text(
+                    'QUALITY',
+                    style: TextStyle(
+                      fontSize: 11.sp,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: .6,
+                    ),
+                  ),
+                  SizedBox(height: 10.h),
+                  Wrap(
+                    spacing: 8.w,
+                    children: ['480p', '720p', '1080p', '4K']
+                        .map(
+                          (q) => ChoiceChip(
+                            label: Text(q),
+                            selected: _quality == q,
+                            onSelected: (_) => setState(() => _quality = q),
+                            selectedColor: AppColors.red.withValues(alpha: .25),
+                            side: BorderSide(
+                              color: _quality == q
+                                  ? AppColors.red
+                                  : AppColors.surface3,
+                            ),
+                            labelStyle: TextStyle(
+                              color: _quality == q
+                                  ? Colors.white
+                                  : AppColors.secondary,
+                              fontSize: 10,
+                            ),
+                          ),
+                        )
+                        .toList(),
+                  ),
+                  SizedBox(height: 24.h),
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton.icon(
+                      onPressed: _starting ? null : _watch,
+                      icon: _starting
+                          ? SizedBox(
+                              width: 16.w,
+                              height: 16.w,
+                              child: const CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : const Icon(Icons.play_arrow_rounded),
+                      label: Text(
+                        _starting ? 'Checking sources...' : 'Watch now',
+                      ),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: AppColors.red,
+                        foregroundColor: Colors.white,
+                        padding: EdgeInsets.symmetric(vertical: 14.h),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 10.h),
+                  OutlinedButton.icon(
+                    onPressed: () => context.read<LibraryCubit>().toggleMyList(
+                      widget.content.id,
+                    ),
+                    icon: Icon(
+                      library.contains(widget.content.id)
+                          ? Icons.bookmark
+                          : Icons.bookmark_border,
+                    ),
+                    label: Text(
+                      library.contains(widget.content.id)
+                          ? 'Remove from My List'
+                          : 'Add to My List',
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.white,
+                      side: const BorderSide(color: AppColors.surface3),
+                      minimumSize: Size(double.infinity, 44.h),
+                    ),
+                  ),
+                  SizedBox(height: 22.h),
+                  Text(
+                    'LICENSE & ATTRIBUTION',
+                    style: TextStyle(
+                      fontSize: 12.sp,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.secondary,
+                    ),
+                  ),
+                  SizedBox(height: 6.h),
+                  Text(
+                    widget.content.license,
+                    style: TextStyle(
+                      fontSize: 12.sp,
+                      color: AppColors.secondary,
+                    ),
+                  ),
+                  SizedBox(height: 5.h),
+                  Text(
+                    widget.content.attribution,
+                    style: TextStyle(
+                      fontSize: 12.sp,
+                      color: AppColors.tertiary,
+                      height: 1.4,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  int get _configuredSourceCount => [
+    'server1',
+    'server2',
+    'server3',
+    'server4',
+    'server5',
+  ].where(_hasUsableSource).length;
+
+  bool _hasUsableSource(String id) {
+    final source = widget.content.sources[id];
+    if (source == null) return false;
+    return ['480p', '720p', '1080p', '4K'].any((quality) {
+      final value = source[quality]?.trim() ?? '';
+      final uri = Uri.tryParse(value);
+      return uri != null && uri.scheme == 'https' && uri.host.isNotEmpty;
+    });
+  }
+
+  List<Widget> _serverList() {
+    const ids = ['server1', 'server2', 'server3', 'server4', 'server5'];
+    final names = {
+      'server1': 'Server 1 • Primary Demo',
+      'server2': 'Server 2 • Backup Demo',
+      'server3': 'Server 3 • BunnyCDN',
+      'server4': 'Server 4 • Cloudflare R2 / B2',
+      'server5': 'Server 5 • Emergency Mirror',
+    };
+    return ids.map((id) {
+      final available = _hasUsableSource(id);
+      final selected = _serverId == id;
+      return Padding(
+        padding: EdgeInsets.only(bottom: 7.h),
+        child: InkWell(
+          onTap: available ? () => setState(() => _serverId = id) : null,
+          borderRadius: BorderRadius.circular(10.r),
+          child: Container(
+            padding: EdgeInsets.symmetric(horizontal: 11.w, vertical: 10.h),
+            decoration: BoxDecoration(
+              color: selected
+                  ? AppColors.red.withValues(alpha: .11)
+                  : AppColors.surface,
+              borderRadius: BorderRadius.circular(10.r),
+              border: Border.all(
+                color: selected ? AppColors.red : AppColors.surface3,
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  available ? Icons.dns_outlined : Icons.add_link,
+                  color: available ? AppColors.blue : AppColors.tertiary,
+                  size: 17,
+                ),
+                SizedBox(width: 9.w),
+                Expanded(
+                  child: Text(
+                    names[id]!,
+                    style: TextStyle(
+                      fontSize: 12.sp,
+                      color: available ? Colors.white : AppColors.tertiary,
+                    ),
+                  ),
+                ),
+                Text(
+                  available ? 'READY' : 'SETUP NEEDED',
+                  style: TextStyle(
+                    color: available ? AppColors.green : AppColors.tertiary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                SizedBox(width: 8.w),
+                if (available)
+                  Icon(
+                    selected
+                        ? Icons.radio_button_checked
+                        : Icons.radio_button_off,
+                    color: selected ? AppColors.red : AppColors.secondary,
+                    size: 16,
+                  ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }).toList();
+  }
+
+  Widget _tag(String label) => Container(
+    padding: EdgeInsets.symmetric(horizontal: 9.w, vertical: 6.h),
+    decoration: BoxDecoration(
+      color: AppColors.surface2,
+      borderRadius: BorderRadius.circular(6.r),
+    ),
+    child: Text(
+      label,
+      style: TextStyle(color: AppColors.secondary, fontSize: 12.sp),
+    ),
+  );
+}

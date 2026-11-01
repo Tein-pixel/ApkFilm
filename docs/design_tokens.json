@@ -1,0 +1,18 @@
+{
+  "brand": {"name": "CINEFLIX Ultra", "tagline": "Open films. Seamless viewing."},
+  "colors": {
+    "primary": "#E50914",
+    "secondary": "#00D1FF",
+    "background": "#000000",
+    "surface": "#121212",
+    "onSurface": "#FFFFFF",
+    "muted": "#9E9E9E",
+    "success": "#00E676",
+    "error": "#FF5252",
+    "surface2": "#1E1E1E",
+    "surface3": "#2A2A2A",
+    "gold": "#FFB800"
+  },
+  "fonts": {"heading": "Poppins", "body": "Poppins"},
+  "radius": {"sm": 8, "md": 12, "lg": 18}
+}
