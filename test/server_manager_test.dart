@@ -85,7 +85,7 @@ void main() {
         final candidates = await manager.getCandidates(contents.first, '1080p');
         expect(candidates, isNotEmpty);
         expect(candidates.first.serverId, 'server1');
-        expect(candidates.first.url.toString(), contains('BigBuckBunny.mp4'));
+        expect(candidates.first.url.toString(), contains('test-streams.mux.dev'));
         for (final content in contents) {
           final playable = await manager.getCandidates(content, '720p');
           expect(
