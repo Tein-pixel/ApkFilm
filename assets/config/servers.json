@@ -14,6 +14,7 @@
       "status": "demo",
       "quality_mode": "adaptive_master_playlist",
       "qualities": {
+        "360p": "",
         "480p": "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
         "720p": "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
         "1080p": "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
@@ -29,6 +30,7 @@
       "status": "demo",
       "quality_mode": "fixed_source",
       "qualities": {
+        "360p": "",
         "480p": "",
         "720p": "https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
         "1080p": "",
@@ -44,6 +46,7 @@
       "status": "needs_configuration",
       "quality_mode": "adaptive_master_playlist",
       "qualities": {
+        "360p": "",
         "480p": "",
         "720p": "",
         "1080p": "",
@@ -59,6 +62,7 @@
       "status": "needs_configuration",
       "quality_mode": "adaptive_master_playlist",
       "qualities": {
+        "360p": "",
         "480p": "",
         "720p": "",
         "1080p": "",
@@ -74,6 +78,7 @@
       "status": "needs_configuration",
       "quality_mode": "adaptive_master_playlist",
       "qualities": {
+        "360p": "",
         "480p": "",
         "720p": "",
         "1080p": "",

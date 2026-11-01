@@ -39,7 +39,7 @@ def media_signature_ok(url: str, content_type: str, data: bytes) -> bool:
         return text.startswith("#EXTM3U")
     if path.endswith(".mpd") or "dash+xml" in content_type:
         return "<MPD" in text or ":MPD" in text
-    if path.endswith((".mp4", ".m4v")) or "video/mp4" in content_type:
+    if path.endswith((".mp4", ".m4v", ".mov")) or "video/mp4" in content_type or "video/quicktime" in content_type:
         return len(data) >= 8 and data[4:8] == b"ftyp"
     if path.endswith(".webm") or "webm" in content_type:
         return data.startswith(bytes((0x1A, 0x45, 0xDF, 0xA3)))

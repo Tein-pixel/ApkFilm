@@ -62,7 +62,7 @@ void main() {
         '480p',
       ]);
       expect(manager.qualityFallbackOrder('720p'), ['720p', '480p']);
-      expect(manager.qualityFallbackOrder('480p'), ['480p']);
+      expect(manager.qualityFallbackOrder('480p'), ['480p', '360p']);\n      expect(manager.qualityFallbackOrder('360p'), ['360p']);
       manager.dispose();
     });
 
@@ -87,7 +87,7 @@ void main() {
         for (final server in config['servers'] as List) {
           expect(
             (server as Map)['qualities'].keys,
-            containsAll(['480p', '720p', '1080p', '4K']),
+            containsAll(['360p', '480p', '720p', '1080p', '4K']),
           );
         }
         manager.dispose();

@@ -77,7 +77,7 @@ class ServerManager {
         throw const FormatException('Each server must be a JSON object.');
       final qualities = row['qualities'];
       if (qualities is! Map ||
-          !['480p', '720p', '1080p', '4K'].every(qualities.containsKey)) {
+          !['360p', '480p', '720p', '1080p', '4K'].every(qualities.containsKey)) {
         throw const FormatException(
           'Every server must declare 480p, 720p, 1080p and 4K slots.',
         );
@@ -87,7 +87,7 @@ class ServerManager {
   }
 
   List<String> qualityFallbackOrder(String preferredQuality) {
-    const qualities = ['4K', '1080p', '720p', '480p'];
+    const qualities = ['4K', '1080p', '720p', '480p', '360p'];
     final start = qualities.indexOf(preferredQuality);
     return qualities.sublist(start < 0 ? 1 : start);
   }
@@ -170,7 +170,9 @@ class ServerManager {
     }
     if (path.endsWith('.mp4') ||
         path.endsWith('.m4v') ||
-        type.contains('video/mp4')) {
+        path.endsWith('.mov') ||
+        type.contains('video/mp4') ||
+        type.contains('video/quicktime')) {
       return prefix.length >= 8 &&
           String.fromCharCodes(prefix.sublist(4, 8)) == 'ftyp';
     }

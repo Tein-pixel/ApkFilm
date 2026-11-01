@@ -45,7 +45,7 @@ class _DetailScreenState extends State<DetailScreen> {
           : result.contains(ConnectivityResult.mobile)
           ? '720p'
           : '480p';
-      const qualityOrder = ['480p', '720p', '1080p', '4K'];
+      const qualityOrder = ['360p', '480p', '720p', '1080p', '4K'];
       final available = _availableQualities;
       final limit = qualityOrder.indexOf(suggested);
       final suitable = available
@@ -444,7 +444,7 @@ class _DetailScreenState extends State<DetailScreen> {
   }
 
   List<String> get _availableQualities {
-    const order = ['480p', '720p', '1080p', '4K'];
+    const order = ['360p', '480p', '720p', '1080p', '4K'];
     return order.where((quality) {
       return widget.content.sources.values.any((source) {
         final raw = source[quality]?.trim() ?? '';
