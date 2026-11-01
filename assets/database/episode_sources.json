@@ -1,0 +1,5 @@
+{
+  "schema_version": 1,
+  "description": "Authorized episode playback sources only. TMDB IDs are metadata identifiers, not stream links.",
+  "episodes": {}
+}
